@@ -235,7 +235,7 @@ export default function Hero({ activeTab, setActiveTab, onSearchLimousine, onSea
 
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 items-end">
             {/* Route swap / Select Origin */}
-            <div className="md:col-span-5 grid grid-cols-11 md:grid-cols-9 gap-1 sm:gap-2 items-center">
+            <div className="md:col-span-5 grid grid-cols-12 md:grid-cols-9 gap-1 items-center">
               <div className="col-span-5 md:col-span-4 space-y-1.5">
                 <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block ml-1">Điểm đi</label>
                 <div className="relative">
@@ -243,7 +243,7 @@ export default function Hero({ activeTab, setActiveTab, onSearchLimousine, onSea
                   <select
                     value={routeFrom}
                     onChange={(e) => handleRouteFromChange(e.target.value)}
-                    className="w-full pl-9 pr-6 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-800 focus:outline-none focus:border-emerald-500 cursor-pointer appearance-none"
+                    className="w-full pl-9 pr-6 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-800 focus:outline-none focus:border-emerald-500 cursor-pointer appearance-none shadow-sm"
                   >
                     {provinceOptions}
                   </select>
@@ -254,14 +254,14 @@ export default function Hero({ activeTab, setActiveTab, onSearchLimousine, onSea
               </div>
 
               {/* Transit swap button */}
-              <div className="col-span-1 flex justify-center pt-5">
+              <div className="col-span-2 md:col-span-1 flex justify-center pt-5 md:pt-4">
                 <button
                   type="button"
                   onClick={swapRoute}
-                  className="p-2 rounded-full bg-stone-100 hover:bg-emerald-100 text-[#1b4332] transition-colors shadow-sm cursor-pointer z-20"
+                  className="p-2 sm:p-2.5 rounded-full bg-white border border-stone-100 text-[#1b4332] shadow-md hover:bg-emerald-50 transition-all cursor-pointer z-20 active:scale-90"
                   title="Đổi chiều đi"
                 >
-                  <span className="text-sm font-bold rotate-90 md:rotate-0 block">⇄</span>
+                  <span className="text-sm font-bold rotate-90 md:rotate-0 block leading-none">⇄</span>
                 </button>
               </div>
 
@@ -273,7 +273,7 @@ export default function Hero({ activeTab, setActiveTab, onSearchLimousine, onSea
                     value={routeTo}
                     onChange={(e) => handleRouteToChange(e.target.value)}
                     disabled={subType === 'combo'}
-                    className="w-full pl-9 pr-6 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-800 focus:outline-none focus:border-emerald-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
+                    className="w-full pl-9 pr-6 py-3 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-800 focus:outline-none focus:border-emerald-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed appearance-none shadow-sm"
                   >
                     {provinceOptions}
                   </select>

@@ -70,29 +70,35 @@ export default function App() {
   const [comboSearch, setComboSearch] = useState<{ hotelId: string; date: string; from?: string; to?: string; time?: string } | null>(null);
 
   const requestNotificationPermission = () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
     if (!("Notification" in window)) {
-      alert("Trình duyệt của bạn hiện không hỗ trợ thông báo đẩy trực tiếp. Hãy mở trang web bằng Chrome hoặc Safari để sử dụng tính năng này.");
+      if (isIOS) {
+        alert("Để nhận thông báo trên iPhone, bạn cần:\n1. Nhấn nút Chia sẻ (hình vuông mũi tên lên) ở dưới trình duyệt.\n2. Chọn 'Thêm vào màn hình chính' (Add to Home Screen).\n3. Mở ứng dụng từ màn hình chính và thử lại.");
+      } else {
+        alert("Trình duyệt này hiện không hỗ trợ thông báo đẩy. Bạn nên sử dụng Chrome hoặc Safari phiên bản mới nhất.");
+      }
       return;
     }
 
     if (Notification.permission === "denied") {
-      alert("Thông báo đã bị chặn. Vui lòng vào cài đặt trình duyệt của bạn để cho phép xedimocchau.com gửi thông báo.");
+      alert("Bạn đã chặn thông báo. Hãy vào Cài đặt trình duyệt/Điện thoại để cho phép xedimocchau.com gửi thông báo.");
       return;
     }
 
     Notification.requestPermission().then(permission => {
       if (permission === "granted") {
         new Notification("Đã bật thông báo thành công", {
-          body: "Hệ thống sẽ thông báo ngay khi có khách hàng đặt vé mới.",
-          icon: "/favicon.ico"
+          body: "Bạn sẽ là người đầu tiên biết khi có khách đặt vé mới!",
+          icon: "/favicon.ico",
+          tag: "welcome-notification"
         });
       } else if (permission === "denied") {
-        alert("Bạn đã từ chối quyền thông báo. Bạn sẽ không nhận được tin nhắn khi có khách mới.");
+        alert("Thông báo đã bị từ chối. Bạn sẽ không nhận được tin nhắn khi có lịch đặt mới.");
       }
     }).catch(err => {
-      console.error("Error requesting notification permission:", err);
-      // Fallback for some mobile browsers
-      alert("Không thể yêu cầu quyền thông báo trên trình duyệt này.");
+      console.error("Notification permission error:", err);
+      alert("Có lỗi xảy ra khi cài đặt thông báo. Vui lòng kiểm tra lại trình duyệt của bạn.");
     });
   };
 
