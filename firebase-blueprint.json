@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile containing roles and points",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "phone": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "operator", "admin"] },
+        "points": { "type": "number" }
+      },
+      "required": ["id", "role"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Ticket booking for limousine, combos, car",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string" },
+        "bookingDate": { "type": "string" },
+        "travelDate": { "type": "string" },
+        "passengerName": { "type": "string" },
+        "passengerPhone": { "type": "string" },
+        "totalPrice": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "status"]
+    },
+    "BlockedSeat": {
+      "title": "BlockedSeat",
+      "description": "Information about locked seats by operator or booked",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tripId": { "type": "string" },
+        "travelDate": { "type": "string" },
+        "seatId": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "lockedBy": { "type": "string" }
+      },
+      "required": ["id", "tripId", "travelDate", "seatId"]
+    },
+    "Config": {
+       "title": "Config",
+       "description": "Global config models for coupons, combos, articles, etc",
+       "type": "object",
+       "properties": {}
+    }
+  },
+  "firestore": {
+    "users": {
+        "schema": { "$ref": "#/entities/User" },
+        "description": "List of user profiles."
+    },
+    "bookings": {
+        "schema": { "$ref": "#/entities/Booking" },
+        "description": "List of bookings."
+    },
+    "blocked_seats": {
+         "schema": { "$ref": "#/entities/BlockedSeat" },
+         "description": "List of currently locked seats on travels."
+    },
+    "configs": {
+         "schema": { "$ref": "#/entities/Config" },
+         "description": "Global configs."
+    }
+  }
+}

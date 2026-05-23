@@ -1,0 +1,6 @@
+{
+  "name": "Xe Đi Mộc Châu - Xe & Combo Cao Cấp",
+  "description": "Nền tảng đặt xe limousine cao cấp, khách sạn và combo du lịch phòng + xe Mộc Châu cùng trợ lý ảo lên kế hoạch thông minh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

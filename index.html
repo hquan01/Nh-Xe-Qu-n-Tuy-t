@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Đặt vé xe Limousine cao cấp Hà Nội đi Mộc Châu, combo du lịch, thuê xe máy và dịch vụ phòng nghỉ. Hệ thống chính hãng, tiện lợi."/>
+    <meta name="keywords" content="xe đi mộc châu, limousine mộc châu, đặt vé xe hà nội, combo mộc châu, thuê xe máy mộc châu"/>
+    <title>Xe Đi Mộc Châu - Limousine Cao Cấp & Combo Du Lịch</title>
+    <script>
+      // Gracefully catch and swallow benign WebSocket or HMR-related connection errors
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason) {
+          var reasonStr = String(event.reason);
+          var reasonMsg = event.reason.message ? String(event.reason.message) : '';
+          if (
+            reasonStr.indexOf('WebSocket') !== -1 ||
+            reasonMsg.indexOf('WebSocket') !== -1 ||
+            reasonStr.indexOf('vite') !== -1 ||
+            reasonMsg.indexOf('vite') !== -1 ||
+            reasonStr.indexOf('Nhanh chóng') !== -1 ||
+            reasonMsg.indexOf('Nhanh chóng') !== -1
+          ) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }
+      }, true);
+
+      window.addEventListener('error', function(event) {
+        if (event.message) {
+          var msg = String(event.message);
+          if (
+            msg.indexOf('WebSocket') !== -1 ||
+            msg.indexOf('vite') !== -1 ||
+            msg.indexOf('Nhanh chóng') !== -1
+          ) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }
+      }, true);
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

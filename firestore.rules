@@ -1,0 +1,118 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.keys().hasAll(['email']) && (request.auth.token.email == 'hquansl001@gmail.com' || request.auth.token.email == 'nhaxe@mocchau.vn')) || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'customer') == 'operator')
+      );
+    }
+
+    function isHardcodedAdmin() {
+      return isSignedIn() && request.auth.token.keys().hasAll(['email']) && (
+        request.auth.token.email == 'hquansl001@gmail.com' || 
+        request.auth.token.email == 'nhaxe@mocchau.vn'
+      );
+    }
+
+    function existing() { return resource.data; }
+    function incoming() { return request.resource.data; }
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUser(data) {
+      return data.keys().size() >= 2 &&
+             data.get('id', '') is string && data.id.size() <= 128 &&
+             data.get('role', '') is string && data.role.size() <= 64 &&
+             (data.get('phone', '') == '' || (data.phone is string && data.phone.size() <= 32)) &&
+             (data.get('name', '') == '' || (data.name is string && data.name.size() <= 128)) &&
+             (data.get('email', '') == '' || (data.email is string && data.email.size() <= 256)) &&
+             (data.get('points', 0) is number);
+    }
+    
+    function isValidBooking(data) {
+      return data.keys().size() >= 4 &&
+             data.get('id', '') is string && data.id.size() <= 128 &&
+             data.get('userId', '') is string && data.userId.size() <= 128 &&
+             data.get('type', '') is string && data.type.size() <= 64 &&
+             data.get('status', '') is string && data.status.size() <= 64 &&
+             (data.get('totalPrice', 0) is number);
+    }
+
+    function isValidBlockedSeat(data) {
+       return data.keys().size() >= 4 &&
+              data.get('id', '') is string && data.id.size() <= 128 &&
+              data.get('tripId', '') is string && data.tripId.size() <= 128 &&
+              data.get('travelDate', '') is string && data.travelDate.size() <= 64 &&
+              data.get('seatId', '') is string && data.seatId.size() <= 64;
+    }
+
+    // users collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isHardcodedAdmin() || isAdmin());
+      allow list: if isHardcodedAdmin() || isAdmin();
+      
+      allow create: if isSignedIn() && request.auth.uid == userId
+                    && isValidId(userId)
+                    && isValidUser(incoming())
+                    && incoming().id == userId
+                    && (incoming().role == 'customer' || incoming().role == 'operator');
+                    
+      allow update: if isSignedIn() && isValidId(userId) && isValidUser(incoming()) && (
+        (request.auth.uid == userId && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone'])) ||
+        ((isHardcodedAdmin() || isAdmin()) && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'points']))
+      );
+      
+      allow delete: if isHardcodedAdmin() || isAdmin();
+    }
+
+    // bookings collection
+    match /bookings/{bookingId} {
+      allow get: if true; // Temporary: allow public read
+      allow list: if true; // Temporary: allow public read
+      
+      // Strict write access:
+      // - Anyone can create a booking if it's well-formed
+      // - Only admin can update/delete status or other fields
+      allow create: if isValidId(bookingId) && isValidBooking(incoming());
+      
+      allow update: if (isHardcodedAdmin() || isAdmin());
+      allow delete: if isHardcodedAdmin() || isAdmin();
+    }
+
+    // blocked_seats collection
+    match /blocked_seats/{seatId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isValidId(seatId) && isValidBlockedSeat(incoming());
+      allow update: if false; // Just delete and recreate
+      allow delete: if isSignedIn() && (isHardcodedAdmin() || isAdmin() || existing().lockedBy == request.auth.uid);
+    }
+    
+    // configs collection (public read, admin write)
+    match /configs/{configId} {
+      allow get: if true;
+      allow list: if true;
+      allow create, update, delete: if isHardcodedAdmin() || isAdmin();
+    }
+
+    // notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isHardcodedAdmin() || isAdmin();
+    }
+  }
+}
