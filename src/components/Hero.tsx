@@ -160,7 +160,7 @@ export default function Hero({ activeTab, setActiveTab, onSearchLimousine, onSea
       <div className="absolute inset-0">
         <img
           src={heroImg}
-          alt="Mộc Châu Đồi Chè"
+          alt="Xe Limousine VIP Hà Nội - Mộc Châu đón trả tận nhà"
           className="w-full h-full object-cover opacity-60 scale-105"
           referrerPolicy="no-referrer"
         />

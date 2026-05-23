@@ -26,7 +26,18 @@ export default function NotificationCenter({ notifications, onMarkAsRead, onClea
     // Small delay to let the browser state update
     setTimeout(() => {
       if ("Notification" in window) setPermissionState(Notification.permission);
-    }, 1000);
+    }, 1500);
+  };
+
+  const testNotification = () => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("Thông báo thử nghiệm ✅", {
+        body: "Tuyệt vời! Hệ thống thông báo của bạn đã hoạt động bình thường.",
+        icon: "/favicon.ico"
+      });
+    } else {
+      handleRequestPermission();
+    }
   };
 
   const formatTimestamp = (iso: string) => {
@@ -73,18 +84,20 @@ export default function NotificationCenter({ notifications, onMarkAsRead, onClea
                   <h3 className="text-sm font-black text-stone-900 uppercase tracking-tighter">Thông báo mới</h3>
                   <p className="text-[10px] text-stone-500 font-bold">Quản lý các lượt đặt vé gần nhất</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <button 
-                    onClick={handleRequestPermission}
+                    onClick={permissionState === "granted" ? testNotification : handleRequestPermission}
                     title="Cài đặt thông báo điện thoại"
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer ${
                       permissionState === "granted" 
-                        ? "bg-stone-100 text-stone-400 cursor-not-allowed" 
-                        : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 active:scale-95"
+                        ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 active:scale-95 border border-emerald-100" 
+                        : "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md shadow-emerald-900/10"
                     }`}
                   >
-                    <Settings className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase">Cài đặt</span>
+                    <Settings className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase">
+                      {permissionState === "granted" ? "Gửi thử" : "Cài đặt"}
+                    </span>
                   </button>
                   {unreadCount > 0 && (
                     <button 

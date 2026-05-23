@@ -176,7 +176,23 @@ export default function Footer({ setActiveTab, onSelectService, onOpenMotorbike 
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-stone-800 text-center text-[11px] text-stone-500 space-y-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-stone-800">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-[10px] text-stone-600 uppercase tracking-widest font-bold">
+          <span>Xe Limousine Mộc Châu</span>
+          <span>•</span>
+          <span>Combo du lịch Mộc Châu</span>
+          <span>•</span>
+          <span>Xe ghép Hà Nội Mộc Châu</span>
+          <span>•</span>
+          <span>Thuê xe máy Mộc Châu</span>
+          <span>•</span>
+          <span>Khách sạn Mộc Châu</span>
+          <span>•</span>
+          <span>Xe Hà Nội Sơn La</span>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 text-center text-[11px] text-stone-500 space-y-2">
         <p>© 2026 Xe Đi Mộc Châu. Mộc Châu Luxury Transporter CO., LTD.</p>
         <p>Giấy phép kinh doanh vận tải và phục vụ lữ hành nội địa số: 09-1223/2026/Sở GTVT-Sơn La. Chịu trách nhiệm nội dung: Xe Đi Mộc Châu Care Team.</p>
         <p>Đơn vị cung cấp dịch vụ đặt vé trực tuyến và combo du lịch trọn gói chất lượng cao chuyên tuyến Hà Nội - Mộc Châu.</p>

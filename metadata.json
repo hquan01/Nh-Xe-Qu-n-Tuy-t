@@ -1,6 +1,6 @@
 {
-  "name": "Xe Đi Mộc Châu - Xe & Combo Cao Cấp",
-  "description": "Nền tảng đặt xe limousine cao cấp, khách sạn và combo du lịch phòng + xe Mộc Châu cùng trợ lý ảo lên kế hoạch thông minh.",
+  "name": "Xe Đi Mộc Châu | Đặt Vé Limousine VIP & Combo 20%",
+  "description": "Dịch vụ đặt vé xe Limousine VIP Hà Nội - Mộc Châu đón trả tận nhà. Hệ thống đặt Combo du lịch phòng + xe tiết kiệm 20%, xe ghép 7 chỗ và thuê xe máy chuyên nghiệp.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

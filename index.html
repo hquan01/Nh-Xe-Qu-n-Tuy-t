@@ -3,10 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Đặt vé xe Limousine cao cấp Hà Nội đi Mộc Châu, combo du lịch, thuê xe máy và dịch vụ phòng nghỉ. Hệ thống chính hãng, tiện lợi."/>
-    <meta name="keywords" content="xe đi mộc châu, limousine mộc châu, đặt vé xe hà nội, combo mộc châu, thuê xe máy mộc châu"/>
-    <title>Xe Đi Mộc Châu - Limousine Cao Cấp & Combo Du Lịch</title>
+    <meta name="description" content="Xe Đi Mộc Châu - Dịch vụ xe Limousine VIP Hà Nội đi Mộc Châu hàng đầu. Đặt vé nhanh, Combo xe & phòng ưu đãi 20%, xe ghép 7 chỗ, thuê xe máy tại Mộc Châu. Cam kết 100% giữ chỗ."/>
+    <meta name="keywords" content="xe đi mộc châu, limousine mộc châu hà nội, đặt vé xe đi mộc châu, combo du lịch mộc châu, xe limousine vip mộc châu, thuê xe máy mộc châu, xe khách hà nội mộc châu"/>
+    <meta name="author" content="Xe Đi Mộc Châu" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xedimocchau.com/">
+    <meta property="og:title" content="Xe Đi Mộc Châu - Limousine VIP & Combo Cao Cấp">
+    <meta property="og:description" content="Chuyên tuyến Hà Nội - Mộc Châu với dòng xe Limousine cao cấp. Đặt vé trực tuyến, Combo xe + phòng giá tốt nhất thị trường.">
+    <meta property="og:image" content="/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://xedimocchau.com/">
+    <meta property="twitter:title" content="Xe Đi Mộc Châu - Limousine VIP & Combo Cao Cấp">
+    <meta property="twitter:description" content="Chuyên tuyến Hà Nội - Mộc Châu với dòng xe Limousine cao cấp. Đặt vé trực tuyến, Combo xe + phòng giá tốt nhất thị trường.">
+    <meta property="twitter:image" content="/og-image.jpg">
+
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Xe Đi Mộc Châu">
+    <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=192&q=80">
+    <meta name="theme-color" content="#1b4332">
+
+    <title>Xe Đi Mộc Châu | Đặt Vé Limousine VIP & Combo Du lịch Giá Rẻ</title>
+    
+    <!-- JSON-LD Structured Data for SEO -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TravelAgency",
+        "name": "Xe Đi Mộc Châu",
+        "image": "https://xedimocchau.com/og-image.jpg",
+        "@id": "https://xedimocchau.com/",
+        "url": "https://xedimocchau.com/",
+        "telephone": "0971050324",
+        "priceRange": "$$$",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Mộc Châu",
+          "addressLocality": "Sơn La",
+          "addressCountry": "VN"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 20.8465,
+          "longitude": 104.6481
+        },
+        "openingHoursSpecification": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ],
+          "opens": "00:00",
+          "closes": "23:59"
+        },
+        "sameAs": [
+          "https://www.facebook.com/xedimocchau",
+          "https://www.instagram.com/xedimocchau"
+        ]
+      }
+    </script>
+
     <script>
+      // Register Service Worker for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW registration failed:', err));
+        });
+      }
+
       // Gracefully catch and swallow benign WebSocket or HMR-related connection errors
       window.addEventListener('unhandledrejection', function(event) {
         if (event.reason) {

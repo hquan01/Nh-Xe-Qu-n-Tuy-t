@@ -71,18 +71,23 @@ export default function App() {
 
   const requestNotificationPermission = () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isStandalone = (window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches;
     
     if (!("Notification" in window)) {
       if (isIOS) {
-        alert("Để nhận thông báo trên iPhone, bạn cần:\n1. Nhấn nút Chia sẻ (hình vuông mũi tên lên) ở dưới trình duyệt.\n2. Chọn 'Thêm vào màn hình chính' (Add to Home Screen).\n3. Mở ứng dụng từ màn hình chính và thử lại.");
+        if (isStandalone) {
+          alert("Trình duyệt không hỗ trợ thông báo. Vui lòng kiểm tra:\n1. iOS phải từ 16.4 trở lên.\n2. Không sử dụng Tab ẩn danh.\n3. Nếu đã 'Thêm vào màn hình chính', hãy thử khởi động lại điện thoại.");
+        } else {
+          alert("Để nhận thông báo trên iPhone, bạn cần:\n1. Nhấn nút Chia sẻ (hình vuông mũi tên lên) ở dưới trình duyệt.\n2. Chọn 'Thêm vào màn hình chính' (Add to Home Screen).\n3. Mở ứng dụng từ màn hình chính và thử lại.");
+        }
       } else {
-        alert("Trình duyệt này hiện không hỗ trợ thông báo đẩy. Bạn nên sử dụng Chrome hoặc Safari phiên bản mới nhất.");
+        alert("Trình duyệt này không hỗ trợ thông báo. Hãy sử dụng Chrome hoặc Safari phiên bản mới nhất.");
       }
       return;
     }
 
     if (Notification.permission === "denied") {
-      alert("Bạn đã chặn thông báo. Hãy vào Cài đặt trình duyệt/Điện thoại để cho phép xedimocchau.com gửi thông báo.");
+      alert("Thông báo hiện đang bị CHẶN. Vui lòng:\n1. Vào Cài đặt điện thoại/Trình duyệt.\n2. Tìm app 'Xe Đi Mộc Châu'.\n3. Bật 'Cho phép thông báo'.");
       return;
     }
 
