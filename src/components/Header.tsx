@@ -68,7 +68,7 @@ export default function Header({
               <img 
                 src="/logo.png" 
                 alt="Xe Đi Mộc Châu Logo" 
-                className="w-10 h-10 rounded-xl object-contain shadow-md shadow-emerald-900/10"
+                className="w-12 h-12 rounded-full object-cover shadow-lg border-2 border-emerald-800/20"
               />
               <div className="flex flex-col text-left">
                 <span className="font-extrabold text-base sm:text-lg text-[#1b4332] tracking-normal leading-none uppercase">
