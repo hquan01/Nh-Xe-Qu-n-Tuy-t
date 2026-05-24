@@ -235,6 +235,7 @@ export default function ExploreMocChau({ destinations, onSelectBooking, currentU
               <img
                 src={dest.image || null}
                 alt={dest.name}
+                loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out"
               />
               <div className="absolute top-4 left-4 flex flex-col gap-2">

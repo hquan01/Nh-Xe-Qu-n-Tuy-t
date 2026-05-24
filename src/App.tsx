@@ -1,20 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { doc, deleteDoc, writeBatch } from "firebase/firestore";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Hero from "./components/Hero";
 import BookingSwitcher from "./components/BookingSwitcher";
 import ComboBooking from "./components/ComboBooking";
-import AIPlanner from "./components/AIPlanner";
-import ExploreMocChau from "./components/ExploreMocChau";
-import TravelGuide from "./components/TravelGuide";
-import BookingList from "./components/BookingList";
-import PaymentModal from "./components/PaymentModal";
 import FloatingContact from "./components/FloatingContact";
-import AuthModal from "./components/AuthModal";
-import OperatorPanel from "./components/OperatorPanel";
-import CustomerDashboard from "./components/CustomerDashboard";
-import NotificationCenter from "./components/NotificationCenter";
+
+// Lazy load heavy or secondary components
+const AIPlanner = lazy(() => import("./components/AIPlanner"));
+const ExploreMocChau = lazy(() => import("./components/ExploreMocChau"));
+const TravelGuide = lazy(() => import("./components/TravelGuide"));
+const BookingList = lazy(() => import("./components/BookingList"));
+const PaymentModal = lazy(() => import("./components/PaymentModal"));
+const AuthModal = lazy(() => import("./components/AuthModal"));
+const OperatorPanel = lazy(() => import("./components/OperatorPanel"));
+const CustomerDashboard = lazy(() => import("./components/CustomerDashboard"));
+const NotificationCenter = lazy(() => import("./components/NotificationCenter"));
+
 import { Booking, AppNotification } from "./types";
 import { useFirebaseSync } from "./hooks/useFirebaseSync";
 import { auth, db } from "./firebase";
@@ -353,170 +356,176 @@ export default function App() {
 
       {/* Main Tab Render Switcher */}
       <main className="flex-1">
-        {activeTab === "limousine" && limousineSearch && (
-          <BookingSwitcher
-            initialSubTab={limousineSubTab}
-            onAddBooking={handleAddBooking}
-            searchParams={limousineSearch}
-            onOpenPayment={setActivePaymentBooking}
-            bookings={bookings}
-            blockedSeats={blockedSeats}
-            currentUser={currentUser}
-            coupons={coupons}
-            locations={locations}
-            limousineConfig={limousineConfig}
-            sharedCarConfig={sharedCarConfig}
-            onDeductPoints={(deducted) => {
-              if (!currentUser || !currentUser.id) return;
-              const nextPoints = Math.max(0, currentUser.points - deducted);
-              saveUserToFirebase(currentUser.id, { points: nextPoints });
-            }}
-          />
-        )}
+        <Suspense fallback={
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        }>
+          {activeTab === "limousine" && limousineSearch && (
+            <BookingSwitcher
+              initialSubTab={limousineSubTab}
+              onAddBooking={handleAddBooking}
+              searchParams={limousineSearch}
+              onOpenPayment={setActivePaymentBooking}
+              bookings={bookings}
+              blockedSeats={blockedSeats}
+              currentUser={currentUser}
+              coupons={coupons}
+              locations={locations}
+              limousineConfig={limousineConfig}
+              sharedCarConfig={sharedCarConfig}
+              onDeductPoints={(deducted) => {
+                if (!currentUser || !currentUser.id) return;
+                const nextPoints = Math.max(0, currentUser.points - deducted);
+                saveUserToFirebase(currentUser.id, { points: nextPoints });
+              }}
+            />
+          )}
 
-        {activeTab === "combo" && comboSearch && (
-          <ComboBooking
-            combos={combos}
-            accommodations={accommodations}
-            locations={locations}
-            onAddBooking={handleAddBooking}
-            searchParams={comboSearch}
-            onOpenPayment={setActivePaymentBooking}
-            currentUser={currentUser}
-            bookings={bookings}
-            coupons={coupons}
-            onDeductPoints={(deducted) => {
-              if (!currentUser || !currentUser.id) return;
-              const nextPoints = Math.max(0, currentUser.points - deducted);
-              saveUserToFirebase(currentUser.id, { points: nextPoints });
-            }}
-          />
-        )}
+          {activeTab === "combo" && comboSearch && (
+            <ComboBooking
+              combos={combos}
+              accommodations={accommodations}
+              locations={locations}
+              onAddBooking={handleAddBooking}
+              searchParams={comboSearch}
+              onOpenPayment={setActivePaymentBooking}
+              currentUser={currentUser}
+              bookings={bookings}
+              coupons={coupons}
+              onDeductPoints={(deducted) => {
+                if (!currentUser || !currentUser.id) return;
+                const nextPoints = Math.max(0, currentUser.points - deducted);
+                saveUserToFirebase(currentUser.id, { points: nextPoints });
+              }}
+            />
+          )}
 
-        {activeTab === "explore" && (
-          <ExploreMocChau 
-            destinations={destinations} 
-            currentUser={currentUser}
-            onSelectBooking={() => {
-              setActiveTab("limousine");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          />
-        )}
-        {activeTab === "guide" && <TravelGuide articles={articles} />}
-        {activeTab === "ai" && <AIPlanner />}
+          {activeTab === "explore" && (
+            <ExploreMocChau 
+              destinations={destinations} 
+              currentUser={currentUser}
+              onSelectBooking={() => {
+                setActiveTab("limousine");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          )}
+          {activeTab === "guide" && <TravelGuide articles={articles} />}
+          {activeTab === "ai" && <AIPlanner />}
 
-        {activeTab === "member" && currentUser && (
-          <CustomerDashboard
-            currentUser={currentUser}
-            onUpdateUser={(updated) => {
-              setCurrentUser(updated);
-            }}
-            bookings={bookings}
-            onCancelBooking={handleCancelBooking}
-            onSignOut={handleSignOut}
-            onOpenPayment={setActivePaymentBooking}
-            coupons={coupons}
-          />
-        )}
+          {activeTab === "member" && currentUser && (
+            <CustomerDashboard
+              currentUser={currentUser}
+              onUpdateUser={(updated) => {
+                setCurrentUser(updated);
+              }}
+              bookings={bookings}
+              onCancelBooking={handleCancelBooking}
+              onSignOut={handleSignOut}
+              onOpenPayment={setActivePaymentBooking}
+              coupons={coupons}
+            />
+          )}
 
-        {activeTab === "operator" && currentUser?.role === "operator" && (
-          <OperatorPanel
-            users={users}
-            bookings={bookings}
-            onUpdateBookingStatus={async (bookingId, status) => {
-              const bk = bookings.find(b => b.id === bookingId);
-              if (bk) await updateBookingStatusInFirebase(bookingId, { ...bk, status });
-            }}
-            onDeleteBooking={async (bookingId) => {
-               // Firebase delete
-               import("firebase/firestore").then(({ doc, deleteDoc }) => {
-                 deleteDoc(doc(db, "bookings", bookingId)).catch(console.error);
-               });
-            }}
-            onBulkDeleteBookings={async (bookingIds) => {
-               import("firebase/firestore").then(({ doc, deleteDoc }) => {
-                 bookingIds.forEach(id => {
-                   deleteDoc(doc(db, "bookings", id)).catch(console.error);
+          {activeTab === "operator" && currentUser?.role === "operator" && (
+            <OperatorPanel
+              users={users}
+              bookings={bookings}
+              onUpdateBookingStatus={async (bookingId, status) => {
+                const bk = bookings.find(b => b.id === bookingId);
+                if (bk) await updateBookingStatusInFirebase(bookingId, { ...bk, status });
+              }}
+              onDeleteBooking={async (bookingId) => {
+                 // Firebase delete
+                 import("firebase/firestore").then(({ doc, deleteDoc }) => {
+                   deleteDoc(doc(db, "bookings", bookingId)).catch(console.error);
                  });
-               });
-            }}
-            blockedSeats={blockedSeats}
-            onToggleBlockedSeat={async (seatId, travelDate, tripId, lockPhone) => {
-              const seatParams = { seatId, travelDate, tripId, customerPhone: lockPhone };
-              const isBlocked = blockedSeats.find(b => b.seatId === seatId && b.travelDate === travelDate && b.tripId === tripId);
-              if (isBlocked) {
-                import("./lib/firebaseUtils").then(({ deleteBlockedSeatFromFirebase }) => deleteBlockedSeatFromFirebase(isBlocked));
-              } else {
-                import("./lib/firebaseUtils").then(({ saveBlockedSeatToFirebase }) => saveBlockedSeatToFirebase(seatParams));
-              }
-            }}
-            onRemoveBlockedSeat={(seat) => {
-               import("./lib/firebaseUtils").then(({ deleteBlockedSeatFromFirebase }) => deleteBlockedSeatFromFirebase(seat));
-            }}
-            onSendNotification={async (title, message) => {
-                const { saveNotificationToFirebase } = await import("./lib/firebaseUtils");
-                const newNotif = {
-                  id: `admin_notif_${Date.now()}`,
-                  title,
-                  message,
-                  timestamp: new Date().toISOString(),
-                  type: "admin_manual",
-                  isRead: false,
-                  deviceId: "all"
-                };
-                saveNotificationToFirebase(newNotif as any);
-            }}
-            notifications={notifications}
-            onUpdateNotifications={(updated) => { 
-                setNotifications(updated); 
-                saveConfigToFirebase("notifications", updated); 
-            }}
-            combos={combos}
-            onUpdateCombos={(updated) => { 
-                console.log("Saving combos configuration to Firebase...");
-                setCombos(updated); 
-                saveConfigToFirebase("combos", updated); 
-            }}
-            accommodations={accommodations}
-            onUpdateAccommodations={(updated) => { 
-                setAccommodations(updated); 
-                saveConfigToFirebase("accommodations", updated); 
-            }}
-            limousineConfig={limousineConfig}
-            onUpdateLimousineConfig={(updated) => { 
-                console.log("Updating Limousine Config:", updated);
-                setLimousineConfig(updated); 
-                saveConfigToFirebase("limousineConfig", updated); 
-            }}
-            sharedCarConfig={sharedCarConfig}
-            onUpdateSharedCarConfig={(updated) => { 
-                setSharedCarConfig(updated); 
-                saveConfigToFirebase("sharedCarConfig", updated); 
-            }}
-            coupons={coupons}
-            onUpdateCoupons={(updated) => { 
-                setCoupons(updated); 
-                saveConfigToFirebase("coupons", updated); 
-            }}
-            locations={locations}
-            onUpdateLocations={(updated) => { 
-              console.log("Updating Locations in App...", updated.length);
-              setLocations(updated); 
-              saveConfigToFirebase("locations", updated); 
-            }}
-            destinations={destinations}
-            onUpdateDestinations={(updated) => { 
-                setDestinations(updated); 
-                saveConfigToFirebase("destinations", updated); 
-            }}
-            articles={articles}
-            onUpdateArticles={(updated) => { 
-                setArticles(updated); 
-                saveConfigToFirebase("articles", updated); 
-            }}
-          />
-        )}
+              }}
+              onBulkDeleteBookings={async (bookingIds) => {
+                 import("firebase/firestore").then(({ doc, deleteDoc }) => {
+                   bookingIds.forEach(id => {
+                     deleteDoc(doc(db, "bookings", id)).catch(console.error);
+                   });
+                 });
+              }}
+              blockedSeats={blockedSeats}
+              onToggleBlockedSeat={async (seatId, travelDate, tripId, lockPhone) => {
+                const seatParams = { seatId, travelDate, tripId, customerPhone: lockPhone };
+                const isBlocked = blockedSeats.find(b => b.seatId === seatId && b.travelDate === travelDate && b.tripId === tripId);
+                if (isBlocked) {
+                  import("./lib/firebaseUtils").then(({ deleteBlockedSeatFromFirebase }) => deleteBlockedSeatFromFirebase(isBlocked));
+                } else {
+                  import("./lib/firebaseUtils").then(({ saveBlockedSeatToFirebase }) => saveBlockedSeatToFirebase(seatParams));
+                }
+              }}
+              onRemoveBlockedSeat={(seat) => {
+                 import("./lib/firebaseUtils").then(({ deleteBlockedSeatFromFirebase }) => deleteBlockedSeatFromFirebase(seat));
+              }}
+              onSendNotification={async (title, message) => {
+                  const { saveNotificationToFirebase } = await import("./lib/firebaseUtils");
+                  const newNotif = {
+                    id: `admin_notif_${Date.now()}`,
+                    title,
+                    message,
+                    timestamp: new Date().toISOString(),
+                    type: "admin_manual",
+                    isRead: false,
+                    deviceId: "all"
+                  };
+                  saveNotificationToFirebase(newNotif as any);
+              }}
+              notifications={notifications}
+              onUpdateNotifications={(updated) => { 
+                  setNotifications(updated); 
+                  saveConfigToFirebase("notifications", updated); 
+              }}
+              combos={combos}
+              onUpdateCombos={(updated) => { 
+                  console.log("Saving combos configuration to Firebase...");
+                  setCombos(updated); 
+                  saveConfigToFirebase("combos", updated); 
+              }}
+              accommodations={accommodations}
+              onUpdateAccommodations={(updated) => { 
+                  setAccommodations(updated); 
+                  saveConfigToFirebase("accommodations", updated); 
+              }}
+              limousineConfig={limousineConfig}
+              onUpdateLimousineConfig={(updated) => { 
+                  console.log("Updating Limousine Config:", updated);
+                  setLimousineConfig(updated); 
+                  saveConfigToFirebase("limousineConfig", updated); 
+              }}
+              sharedCarConfig={sharedCarConfig}
+              onUpdateSharedCarConfig={(updated) => { 
+                  setSharedCarConfig(updated); 
+                  saveConfigToFirebase("sharedCarConfig", updated); 
+              }}
+              coupons={coupons}
+              onUpdateCoupons={(updated) => { 
+                  setCoupons(updated); 
+                  saveConfigToFirebase("coupons", updated); 
+              }}
+              locations={locations}
+              onUpdateLocations={(updated) => { 
+                console.log("Updating Locations in App...", updated.length);
+                setLocations(updated); 
+                saveConfigToFirebase("locations", updated); 
+              }}
+              destinations={destinations}
+              onUpdateDestinations={(updated) => { 
+                  setDestinations(updated); 
+                  saveConfigToFirebase("destinations", updated); 
+              }}
+              articles={articles}
+              onUpdateArticles={(updated) => { 
+                  setArticles(updated); 
+                  saveConfigToFirebase("articles", updated); 
+              }}
+            />
+          )}
+        </Suspense>
       </main>
 
       {/* Platform Footer */}
@@ -527,56 +536,64 @@ export default function App() {
       />
 
       {/* Modal - Live Auth registration and logins */}
-      <AuthModal
-        users={users}
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={(user) => {
-          setCurrentUser(user);
-          localStorage.setItem("xedimocchau_current_user", JSON.stringify(user));
-          if (user.role === "operator") {
-            setActiveTab("operator");
-          } else {
-            setActiveTab("member");
-          }
-        }}
-      />
+      <Suspense fallback={null}>
+        <AuthModal
+          users={users}
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onLoginSuccess={(user) => {
+            setCurrentUser(user);
+            localStorage.setItem("xedimocchau_current_user", JSON.stringify(user));
+            if (user.role === "operator") {
+              setActiveTab("operator");
+            } else {
+              setActiveTab("member");
+            }
+          }}
+        />
+      </Suspense>
 
       {/* Modal - My Bookings Ticket list */}
-      <BookingList
-        bookings={bookings}
-        isOpen={isBookingListOpen}
-        onClose={() => setIsBookingListOpen(false)}
-        onCancelBooking={handleCancelBooking}
-      />
+      <Suspense fallback={null}>
+        <BookingList
+          bookings={bookings}
+          isOpen={isBookingListOpen}
+          onClose={() => setIsBookingListOpen(false)}
+          onCancelBooking={handleCancelBooking}
+        />
+      </Suspense>
 
       {/* Modal - VietQR Payment gateway instruction */}
-      <PaymentModal
-        booking={activePaymentBooking}
-        onClose={(wasSuccessful) => {
-          setActivePaymentBooking(null);
-          if (wasSuccessful) {
-            window.location.reload();
-          } else {
-            setIsBookingListOpen(true);
-          }
-        }}
-        onConfirmSuccess={handleConfirmPaymentSuccess}
-        coupons={coupons}
-      />
+      <Suspense fallback={null}>
+        <PaymentModal
+          booking={activePaymentBooking}
+          onClose={(wasSuccessful) => {
+            setActivePaymentBooking(null);
+            if (wasSuccessful) {
+              window.location.reload();
+            } else {
+              setIsBookingListOpen(true);
+            }
+          }}
+          onConfirmSuccess={handleConfirmPaymentSuccess}
+          coupons={coupons}
+        />
+      </Suspense>
 
       {/* Floating fast support buttons */}
       <FloatingContact />
 
       {currentUser?.role === "operator" && (
-        <NotificationCenter 
-          notifications={notifications} 
-          onMarkAsRead={markNotificationAsRead}
-          onMarkAllAsRead={markAllNotificationsAsRead}
-          onDeleteNotification={deleteNotification}
-          onDeleteAll={deleteAllNotifications}
-          onRequestPermission={requestNotificationPermission}
-        />
+        <Suspense fallback={null}>
+          <NotificationCenter 
+            notifications={notifications} 
+            onMarkAsRead={markNotificationAsRead}
+            onMarkAllAsRead={markAllNotificationsAsRead}
+            onDeleteNotification={deleteNotification}
+            onDeleteAll={deleteAllNotifications}
+            onRequestPermission={requestNotificationPermission}
+          />
+        </Suspense>
       )}
 
       {/* Modal - Motorbike Rental Info */}

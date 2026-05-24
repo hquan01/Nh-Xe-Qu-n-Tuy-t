@@ -171,6 +171,7 @@ export default function TravelGuide({ articles }: TravelGuideProps) {
                           src={article.imageUrl || null}
                           alt={article.title}
                           referrerPolicy="no-referrer"
+                          loading="lazy"
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute top-2.5 left-2.5 flex gap-1.5">
@@ -425,6 +426,7 @@ export default function TravelGuide({ articles }: TravelGuideProps) {
                           <img 
                             src={img || null} 
                             alt={`Album ${idx}`} 
+                            loading="lazy"
                             className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500" 
                           />
                         </div>
