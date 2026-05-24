@@ -80,53 +80,70 @@ export default function ExploreMocChau({ destinations, onSelectBooking }: Explor
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 text-left">
         {visibleDestinations.map((dest) => (
-          <div
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             key={dest.id}
             id={`dest_card_${dest.id}`}
-            className="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-md hover:shadow-lg transition-all flex flex-col sm:flex-row h-full"
+            className="group bg-white rounded-[2rem] overflow-hidden border border-stone-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col h-full"
           >
-            {/* Visual Thumbnail */}
-            <div className="sm:w-1/2 h-52 sm:h-auto relative overflow-hidden shrink-0">
+            {/* Visual Thumbnail - Rectangular Aspect Ratio */}
+            <div className="aspect-[16/10] sm:aspect-video w-full relative overflow-hidden">
               <img
                 src={dest.image || null}
                 alt={dest.name}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out"
               />
-              <div className="absolute top-3 left-3 bg-stone-900/95 backdrop-blur-xs text-emerald-400 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-lg shadow-sm">
-                {dest.tag}
+              <div className="absolute top-4 left-4 flex flex-col gap-2">
+                <div className="bg-white/90 backdrop-blur-md text-emerald-900 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-xl">
+                  {dest.tag}
+                </div>
               </div>
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-stone-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
 
-            {/* Inner Content info */}
-            <div className="p-6 sm:w-1/2 flex flex-col justify-between space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-1 text-[10px] uppercase font-bold text-stone-400">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{dest.distance}</span>
-                </div>
-                <h3 className="font-extrabold text-[#1b4332] text-base leading-snug">
-                  {dest.name}
-                </h3>
-                <p className="text-stone-500 text-[11px] leading-relaxed font-sans">{dest.description}</p>
+            {/* Content Section */}
+            <div className="p-6 sm:p-8 flex flex-col flex-1">
+              <div className="flex items-center space-x-2 text-emerald-600 mb-3">
+                <MapPin className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{dest.distance}</span>
               </div>
 
-              {/* Tips block */}
-              <div className="space-y-2 pt-3 border-t border-stone-100">
-                <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-800">
-                  <Clock className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Thời gian lý tưởng:</span>
-                </div>
-                <p className="text-[10px] text-stone-600 font-sans leading-tight mt-1">{dest.bestTime}</p>
+              <h3 className="font-black text-stone-900 text-xl sm:text-2xl mb-3 tracking-tight group-hover:text-emerald-700 transition-colors">
+                {dest.name}
+              </h3>
+              
+              <p className="text-stone-500 text-xs sm:text-sm leading-relaxed mb-6 line-clamp-3 font-sans opacity-80">
+                {dest.description}
+              </p>
 
-                <div className="flex items-start space-x-1.5 text-xs font-bold text-[#1b4332] mt-2">
-                  <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Mẹo hay du lịch: <p className="font-normal text-stone-600 text-[10px] inline font-sans leading-relaxed">{dest.tips}</p></span>
+              {/* Detail Grid */}
+              <div className="mt-auto grid grid-cols-1 gap-4 pt-6 border-t border-stone-100">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-0.5">Thời điểm ghé thăm</h4>
+                    <p className="text-xs font-extrabold text-stone-700 leading-tight">{dest.bestTime}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-0.5">Bí kíp check-in</h4>
+                    <p className="text-xs text-stone-600 leading-relaxed font-medium italic">"{dest.tips}"</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
