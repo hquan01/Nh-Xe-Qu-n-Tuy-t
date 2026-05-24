@@ -162,9 +162,22 @@ export default function App() {
     setNotifications(updated);
   };
 
-  const clearAllNotifications = () => {
+  const markAllNotificationsAsRead = () => {
     const updated = notifications.map(n => ({ ...n, isRead: true }));
     setNotifications(updated);
+  };
+
+  const deleteNotification = (id: string) => {
+    const updated = notifications.filter(n => n.id !== id);
+    setNotifications(updated);
+    // Note: We could also delete from Firebase here if persistent deletion is required
+  };
+
+  const deleteAllNotifications = () => {
+    if (confirm("Bạn có chắc chắn muốn xóa tất cả thông báo?")) {
+      setNotifications([]);
+      // Note: We could also clear in Firebase here
+    }
   };
 
   const handleCancelBooking = async (id: string) => {
@@ -509,7 +522,9 @@ export default function App() {
         <NotificationCenter 
           notifications={notifications} 
           onMarkAsRead={markNotificationAsRead}
-          onClearAll={clearAllNotifications}
+          onMarkAllAsRead={markAllNotificationsAsRead}
+          onDeleteNotification={deleteNotification}
+          onDeleteAll={deleteAllNotifications}
           onRequestPermission={requestNotificationPermission}
         />
       )}

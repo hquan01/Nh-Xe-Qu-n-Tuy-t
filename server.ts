@@ -82,11 +82,12 @@ Hãy tạo cấu trúc lịch trình chất lượng cao sử dụng Markdown. S
 Vui lòng chia sẻ lịch trình theo từng ngày, nêu rõ thời gian khởi hành bằng xe Limousine từ Hà Nội (khoảng 4-5 tiếng đi xe dọc quốc lộ 6), các điểm dừng nghỉ dọc đường, điểm chụp ảnh check-in tuyệt đẹp, các quán ăn ngon nổi tiếng của người bản xứ và lời khuyên chuẩn bị trang phục, thời tiết Mộc Châu.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
         systemInstruction,
         temperature: 0.7,
+        tools: [{ googleSearch: {} }]
       }
     });
 

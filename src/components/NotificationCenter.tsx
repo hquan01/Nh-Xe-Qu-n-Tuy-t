@@ -6,11 +6,20 @@ import { AppNotification } from "../types";
 interface NotificationCenterProps {
   notifications: AppNotification[];
   onMarkAsRead: (id: string) => void;
-  onClearAll: () => void;
+  onMarkAllAsRead: () => void;
+  onDeleteNotification: (id: string) => void;
+  onDeleteAll: () => void;
   onRequestPermission?: () => void;
 }
 
-export default function NotificationCenter({ notifications, onMarkAsRead, onClearAll, onRequestPermission }: NotificationCenterProps) {
+export default function NotificationCenter({ 
+  notifications, 
+  onMarkAsRead, 
+  onMarkAllAsRead, 
+  onDeleteNotification,
+  onDeleteAll,
+  onRequestPermission 
+}: NotificationCenterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const [permissionState, setPermissionState] = useState<string>("default");
@@ -84,36 +93,47 @@ export default function NotificationCenter({ notifications, onMarkAsRead, onClea
                   <h3 className="text-sm font-black text-stone-900 uppercase tracking-tighter">Thông báo mới</h3>
                   <p className="text-[10px] text-stone-500 font-bold">Quản lý các lượt đặt vé gần nhất</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <button 
-                    onClick={permissionState === "granted" ? testNotification : handleRequestPermission}
-                    title="Cài đặt thông báo điện thoại"
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-                      permissionState === "granted" 
-                        ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 active:scale-95 border border-emerald-100" 
-                        : "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md shadow-emerald-900/10"
-                    }`}
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-black uppercase">
-                      {permissionState === "granted" ? "Gửi thử" : "Cài đặt"}
-                    </span>
-                  </button>
-                  {unreadCount > 0 && (
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="p-1.5 hover:bg-stone-200 rounded-full transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4 text-stone-400" />
+                </button>
+              </div>
+
+              {/* Sub-header actions */}
+              <div className="px-6 py-2 bg-stone-50/50 border-b border-stone-100 flex flex-wrap items-center gap-2">
+                <button 
+                  onClick={permissionState === "granted" ? testNotification : handleRequestPermission}
+                  title="Cài đặt thông báo điện thoại"
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    permissionState === "granted" 
+                      ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 active:scale-95 border border-emerald-100" 
+                      : "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-sm shadow-emerald-900/10"
+                  }`}
+                >
+                  <Settings className="w-3 h-3" />
+                  <span className="text-[8px] font-black uppercase">
+                    {permissionState === "granted" ? "Gửi thử" : "Cài đặt"}
+                  </span>
+                </button>
+                
+                {notifications.length > 0 && (
+                  <>
                     <button 
-                      onClick={onClearAll}
-                      className="text-[10px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-wider cursor-pointer"
+                      onClick={onMarkAllAsRead}
+                      className="text-[9px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-wider cursor-pointer px-2 py-1 hover:bg-emerald-50 rounded-lg transition-all"
                     >
-                      Đánh dấu tất cả
+                      Đọc hết
                     </button>
-                  )}
-                  <button 
-                    onClick={() => setIsOpen(false)}
-                    className="p-1.5 hover:bg-stone-200 rounded-full transition-all cursor-pointer"
-                  >
-                    <X className="w-4 h-4 text-stone-400" />
-                  </button>
-                </div>
+                    <button 
+                      onClick={onDeleteAll}
+                      className="text-[9px] font-black text-red-600 hover:text-red-700 uppercase tracking-wider cursor-pointer px-2 py-1 hover:bg-red-50 rounded-lg transition-all ml-auto"
+                    >
+                      Xóa tất cả
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="max-h-[60vh] overflow-y-auto overflow-x-hidden">
@@ -139,10 +159,22 @@ export default function NotificationCenter({ notifications, onMarkAsRead, onClea
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start">
-                              <h4 className={`text-xs uppercase tracking-tight truncate pr-4 ${!n.isRead ? 'font-black text-stone-900' : 'font-bold text-stone-500'}`}>
+                              <h4 className={`text-xs uppercase tracking-tight truncate pr-2 ${!n.isRead ? 'font-black text-stone-900' : 'font-bold text-stone-500'}`}>
                                 {n.title}
                               </h4>
-                              <span className="text-[9px] text-stone-400 font-bold whitespace-nowrap">{formatTimestamp(n.timestamp)}</span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-[9px] text-stone-400 font-bold whitespace-nowrap">{formatTimestamp(n.timestamp)}</span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteNotification(n.id);
+                                  }}
+                                  className="p-1 text-stone-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                                  title="Xóa thông báo"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
                             </div>
                             <p className="text-xs text-stone-600 mt-1 line-clamp-2 leading-relaxed">
                               {n.message}
