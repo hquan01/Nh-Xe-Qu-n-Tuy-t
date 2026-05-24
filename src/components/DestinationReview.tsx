@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Star, MessageSquare, Send, Mail, Facebook, User, X } from "lucide-react";
+import { Star, MessageSquare, Send, Mail, Facebook, User, X, Edit2, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Review } from "../types";
 
@@ -16,6 +16,9 @@ export default function DestinationReview({ destinationId, destinationName }: De
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUserProfile] = useState<{name: string, email: string, avatar?: string} | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editComment, setEditComment] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +44,32 @@ export default function DestinationReview({ destinationId, destinationName }: De
     setComment("");
     setRating(5);
     setShowForm(false);
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editComment.trim() || !editingReviewId) return;
+
+    setReviews(prev => prev.map(rev => 
+      rev.id === editingReviewId 
+        ? { ...rev, comment: editComment, rating: editRating, timestamp: new Date().toISOString() }
+        : rev
+    ));
+    setEditingReviewId(null);
+    setEditComment("");
+    setEditRating(5);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa đánh giá này không?")) {
+      setReviews(prev => prev.filter(rev => rev.id !== id));
+    }
+  };
+
+  const startEditing = (review: Review) => {
+    setEditingReviewId(review.id);
+    setEditComment(review.comment);
+    setEditRating(review.rating);
   };
 
   const loginWithEmail = (name: string, email: string) => {
@@ -145,22 +174,88 @@ export default function DestinationReview({ destinationId, destinationName }: De
                 alt={review.userName} 
               />
               <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <h5 className="text-xs font-black text-stone-900">{review.userName}</h5>
-                  <div className="flex space-x-0.5">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className={`w-2.5 h-2.5 ${s <= review.rating ? 'text-amber-400 fill-current' : 'text-stone-200'}`} />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-[11px] text-stone-600 leading-relaxed font-sans mb-2">{review.comment}</p>
-                <div className="flex items-center space-x-3 text-[9px] text-stone-400 font-bold uppercase tracking-wider">
-                  <span>{new Date(review.timestamp).toLocaleDateString("vi-VN")}</span>
-                  <span>•</span>
-                  <button className="hover:text-emerald-600 transition-colors">Thích</button>
-                  <span>•</span>
-                  <button className="hover:text-emerald-600 transition-colors">Phản hồi</button>
-                </div>
+                {editingReviewId === review.id ? (
+                  <form onSubmit={handleUpdate} className="bg-stone-50 rounded-xl p-4 border border-emerald-200">
+                    <div className="flex items-center space-x-1 mb-3">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setEditRating(s)}
+                          className="outline-none"
+                        >
+                          <Star 
+                            className={`w-4 h-4 ${s <= editRating ? 'text-amber-400 fill-current' : 'text-stone-300'}`} 
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      className="w-full bg-white border border-stone-200 rounded-lg p-3 text-xs font-sans outline-none focus:border-emerald-500 transition-colors mb-3"
+                      value={editComment}
+                      onChange={(e) => setEditComment(e.target.value)}
+                      rows={2}
+                    />
+                    <div className="flex space-x-2">
+                      <button 
+                        type="submit"
+                        className="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold"
+                      >
+                        Lưu thay đổi
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setEditingReviewId(null)}
+                        className="bg-stone-200 text-stone-600 px-3 py-1.5 rounded-lg text-xs font-bold"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center space-x-2">
+                        <h5 className="text-xs font-black text-stone-900">{review.userName}</h5>
+                        {isLoggedIn && userProfile?.email === review.userEmail && (
+                          <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black uppercase">Bạn</span>
+                        )}
+                      </div>
+                      <div className="flex space-x-0.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className={`w-2.5 h-2.5 ${s <= review.rating ? 'text-amber-400 fill-current' : 'text-stone-200'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-stone-600 leading-relaxed font-sans mb-2">{review.comment}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 text-[9px] text-stone-400 font-bold uppercase tracking-wider">
+                        <span>{new Date(review.timestamp).toLocaleDateString("vi-VN")}</span>
+                        <span>•</span>
+                        <button className="hover:text-emerald-600 transition-colors">Thích</button>
+                        <span>•</span>
+                        <button className="hover:text-emerald-600 transition-colors">Phản hồi</button>
+                      </div>
+                      
+                      {isLoggedIn && userProfile?.email === review.userEmail && (
+                        <div className="flex items-center space-x-3">
+                          <button 
+                            onClick={() => startEditing(review)}
+                            className="text-stone-400 hover:text-emerald-600 transition-colors"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(review.id)}
+                            className="text-stone-400 hover:text-rose-500 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))
