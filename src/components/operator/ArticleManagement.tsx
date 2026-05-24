@@ -10,13 +10,18 @@ interface ArticleManagementProps {
 
 export default function ArticleManagement({ articles, onUpdateArticles }: ArticleManagementProps) {
   const [editingArticle, setEditingArticle] = useState<GuideArticle | null>(null);
+  const [contentRaw, setContentRaw] = useState("");
+  const [albumRaw, setAlbumRaw] = useState("");
 
   const handleSave = (updated: GuideArticle) => {
-    // Clean up empty lines before saving
+    // Convert raw strings back to arrays
+    const finalContent = contentRaw.split('\n').filter(p => p.trim() !== '');
+    const finalAlbum = albumRaw.split('\n').filter(url => url.trim() !== '');
+
     const cleanedArticle: GuideArticle = {
       ...updated,
-      content: updated.content.filter(p => p.trim() !== ''),
-      albumImages: updated.albumImages?.filter(url => url.trim() !== '')
+      content: finalContent,
+      albumImages: finalAlbum
     };
     
     const exists = articles.find(a => a.id === cleanedArticle.id);
@@ -34,11 +39,11 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
   };
 
   const startNew = () => {
-    setEditingArticle({
+    const newArt: GuideArticle = {
       id: `article_${Date.now()}`,
       title: "",
       excerpt: "",
-      content: [""],
+      content: [],
       imageUrl: "",
       category: "tips",
       categoryLabel: "Kinh nghiệm",
@@ -46,8 +51,18 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
       date: new Date().toLocaleDateString('vi-VN'),
       views: 0,
       likes: 0,
+      saves: 0,
       isHot: false
-    });
+    };
+    setEditingArticle(newArt);
+    setContentRaw("");
+    setAlbumRaw("");
+  };
+
+  const startEdit = (article: GuideArticle) => {
+    setEditingArticle(article);
+    setContentRaw(article.content.join('\n'));
+    setAlbumRaw(article.albumImages?.join('\n') || '');
   };
 
   return (
@@ -82,7 +97,7 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setEditingArticle(article)} className="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer">
+                <button onClick={() => startEdit(article)} className="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer">
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button onClick={() => handleDelete(article.id)} className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer">
@@ -169,11 +184,8 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
                     <textarea 
                       className="w-full p-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" 
                       rows={3}
-                      value={editingArticle.albumImages?.join('\n') || ''} 
-                      onChange={e => {
-                        const urls = e.target.value.split('\n');
-                        setEditingArticle({...editingArticle, albumImages: urls});
-                      }}
+                      value={albumRaw} 
+                      onChange={e => setAlbumRaw(e.target.value)}
                       placeholder="Dán link ảnh tại đây, mỗi dòng 1 link..."
                     />
                   </div>
@@ -193,11 +205,8 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
                     <textarea 
                       className="w-full p-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans" 
                       rows={10}
-                      value={editingArticle.content.join('\n')} 
-                      onChange={e => {
-                        const paragraphs = e.target.value.split('\n');
-                        setEditingArticle({...editingArticle, content: paragraphs});
-                      }}
+                      value={contentRaw} 
+                      onChange={e => setContentRaw(e.target.value)}
                       placeholder="Nội dung bài viết..."
                     />
                   </div>
