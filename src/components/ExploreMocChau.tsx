@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Destination } from "../types";
-import { Clock, Info, Check, Sparkles, MapPin, Compass, Ticket, List, ChevronRight, Heart, Eye, Bookmark, Share2, ChevronDown } from "lucide-react";
+import { Clock, Info, Check, Sparkles, MapPin, Compass, Ticket, List, ChevronRight, Heart, Eye, Bookmark, Share2, ChevronDown, Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import DestinationReview from "./DestinationReview";
 
 interface ExploreMocChauProps {
   destinations: Destination[];
@@ -10,10 +11,21 @@ interface ExploreMocChauProps {
 
 export default function ExploreMocChau({ destinations, onSelectBooking }: ExploreMocChauProps) {
   const [displayCount, setDisplayCount] = useState(4);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isTocOpen, setIsTocOpen] = useState(false);
   const [interactions, setInteractions] = useState<{ [key: string]: { liked: boolean, saved: boolean, likes: number, views: number } }>({});
 
-  const visibleDestinations = destinations.slice(0, displayCount);
+  const filteredDestinations = useMemo(() => {
+    if (!searchQuery.trim()) return destinations;
+    const query = searchQuery.toLowerCase().trim();
+    return destinations.filter(dest => 
+      dest.name.toLowerCase().includes(query) || 
+      dest.description.toLowerCase().includes(query) ||
+      dest.tag?.toLowerCase().includes(query)
+    );
+  }, [destinations, searchQuery]);
+
+  const visibleDestinations = filteredDestinations.slice(0, searchQuery ? filteredDestinations.length : displayCount);
 
   const toggleLike = (id: string) => {
     setInteractions(prev => {
@@ -110,6 +122,31 @@ export default function ExploreMocChau({ destinations, onSelectBooking }: Explor
         </p>
       </div>
 
+      {/* Search & Navigation Bar */}
+      <div className="mb-8 max-w-4xl mx-auto flex flex-col sm:flex-row gap-4">
+        {/* Search Input */}
+        <div className="relative flex-1 group">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+            <Search className="w-5 h-5 text-stone-400 group-focus-within:text-emerald-500 transition-colors" />
+          </div>
+          <input
+            type="text"
+            placeholder="Tìm địa điểm, bài viết, trải nghiệm..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-14 bg-white border border-stone-200 rounded-2xl pl-12 pr-12 text-sm font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-4 flex items-center text-stone-400 hover:text-stone-600 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Table of Contents (Mục lục) - Dropdown Style */}
       <div className="mb-12 max-w-4xl mx-auto">
         <div className="bg-stone-50 border border-stone-200 rounded-2xl shadow-sm overflow-hidden relative">
@@ -125,7 +162,9 @@ export default function ExploreMocChau({ destinations, onSelectBooking }: Explor
               </div>
               <div className="text-left">
                 <h3 className="font-black text-xs sm:text-sm uppercase tracking-widest leading-none">Mục Lục Bài Viết</h3>
-                <p className="text-[10px] text-stone-500 font-bold mt-1 uppercase tracking-tight">Click để xem nhanh tọa độ</p>
+                <p className="text-[10px] text-stone-500 font-bold mt-1 uppercase tracking-tight">
+                  {searchQuery ? `Tìm thấy ${filteredDestinations.length} kết quả` : "Click để xem nhanh tọa độ"}
+                </p>
               </div>
             </div>
             <motion.div
@@ -147,26 +186,30 @@ export default function ExploreMocChau({ destinations, onSelectBooking }: Explor
               >
                 <div className="px-5 sm:px-6 pb-6 pt-0">
                   <div className="h-px bg-stone-200 mb-6" />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-                    {destinations.map((dest, idx) => (
-                      <button
-                        key={dest.id}
-                        onClick={() => {
-                          scrollToDestination(dest.id, idx);
-                          setIsTocOpen(false);
-                        }}
-                        className="flex items-center text-left group transition-all hover:translate-x-1"
-                      >
-                        <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-stone-200/50 flex items-center justify-center text-[10px] font-black text-stone-600 group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors mr-3 border border-stone-200 group-hover:border-emerald-200">
-                          {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
-                        </div>
-                        <span className="text-xs font-bold text-stone-600 group-hover:text-emerald-700 transition-colors line-clamp-1 border-b border-transparent group-hover:border-emerald-300 pb-0.5">
-                          {dest.name}
-                        </span>
-                        <ChevronRight className="w-3 h-3 text-stone-300 group-hover:text-emerald-400 ml-auto opacity-0 group-hover:opacity-100 transition-all" />
-                      </button>
-                    ))}
-                  </div>
+                  {filteredDestinations.length === 0 ? (
+                    <p className="text-xs text-stone-400 font-medium italic text-center py-4">Không tìm thấy địa điểm phù hợp</p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                      {filteredDestinations.map((dest, idx) => (
+                        <button
+                          key={dest.id}
+                          onClick={() => {
+                            scrollToDestination(dest.id, idx);
+                            setIsTocOpen(false);
+                          }}
+                          className="flex items-center text-left group transition-all hover:translate-x-1"
+                        >
+                          <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-stone-200/50 flex items-center justify-center text-[10px] font-black text-stone-600 group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors mr-3 border border-stone-200 group-hover:border-emerald-200">
+                            {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                          </div>
+                          <span className="text-xs font-bold text-stone-600 group-hover:text-emerald-700 transition-colors line-clamp-1 border-b border-transparent group-hover:border-emerald-300 pb-0.5">
+                            {dest.name}
+                          </span>
+                          <ChevronRight className="w-3 h-3 text-stone-300 group-hover:text-emerald-400 ml-auto opacity-0 group-hover:opacity-100 transition-all" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -267,18 +310,40 @@ export default function ExploreMocChau({ destinations, onSelectBooking }: Explor
                   </div>
                 </div>
               </div>
+
+              {/* Review Section */}
+              <DestinationReview 
+                destinationId={dest.id} 
+                destinationName={dest.name} 
+              />
             </div>
           </motion.div>
         ))}
       </div>
 
-      {displayCount < destinations.length && (
+      {filteredDestinations.length > displayCount && !searchQuery && (
         <div className="mt-12 text-center">
           <button 
             onClick={() => setDisplayCount(prev => prev + 4)}
             className="bg-white border-2 border-emerald-600 text-emerald-600 px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all cursor-pointer shadow-lg shadow-emerald-900/10"
           >
             Xem thêm địa điểm
+          </button>
+        </div>
+      )}
+
+      {filteredDestinations.length === 0 && (
+        <div className="mt-20 text-center py-20 bg-stone-50 rounded-3xl border border-dashed border-stone-200">
+          <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-8 h-8 text-stone-300" />
+          </div>
+          <h3 className="text-stone-900 font-black text-lg">Không tìm thấy kết quả</h3>
+          <p className="text-stone-500 text-sm mt-2">Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.</p>
+          <button 
+            onClick={() => setSearchQuery("")}
+            className="mt-6 text-emerald-600 font-black text-xs uppercase tracking-widest hover:underline"
+          >
+            Xóa tìm kiếm
           </button>
         </div>
       )}

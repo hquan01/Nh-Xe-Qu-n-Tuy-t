@@ -91,6 +91,17 @@ export interface Booking {
   deviceId?: string;
 }
 
+export interface Review {
+  id: string;
+  destinationId: string;
+  userName: string;
+  userEmail?: string;
+  userAvatar?: string;
+  rating: number; // 1-5
+  comment: string;
+  timestamp: string;
+}
+
 export interface Destination {
   id: string;
   name: string;
