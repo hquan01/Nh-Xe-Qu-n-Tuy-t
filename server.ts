@@ -36,13 +36,34 @@ function getAiClient() {
   return aiClient;
 }
 
+// Catch-all for API to debug 405/404
+app.all("/api/*", (req, res, next) => {
+  console.log(`[API Debug] ${req.method} ${req.url}`);
+  next();
+});
+
+// API Test route
+app.get("/api/test", (req, res) => {
+  res.json({ status: "ok", message: "API is working" });
+});
+
 // API endpoint for AI Moc Chau Itinerary Planner
 app.post("/api/chat-itinerary", async (req, res) => {
+  console.log("[AI Planner] POST request received at /api/chat-itinerary");
   try {
     const { duration, style, budget, groupType, notes } = req.body;
+    console.log("[AI Planner] Payload:", { duration, style, budget, groupType });
 
     const ai = getAiClient();
-    if (!process.env.GEMINI_API_KEY) {
+    const modelName = "gemini-1.5-flash"; 
+    const model = ai.getGenerativeModel({ 
+      model: modelName,
+      tools: [{ googleSearch: {} }] as any
+    });
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.log("[AI Planner] API Key missing, using demo mode");
       // Graceful fallback with template mock if API key is missing
       return res.json({
         success: true,
@@ -50,8 +71,8 @@ app.post("/api/chat-itinerary", async (req, res) => {
 \n**Thời lượng:** ${duration || "3 ngày 2 đêm"} | **Phong cách:** ${style || "Nghỉ dưỡng"} | **Ngân sách:** ${budget || "Tầm trung"} | **Nhóm:** ${groupType || "Cặp đôi"}
 \nDo hệ thống đang trong chế độ chạy thử nghiệm (Chưa kết nối API Key), chúng tôi xin gửi ý tưởng lịch trình chung:
 \n* **Ngày 1:** Hà Nội - Mộc Châu - Đồi Chè Trái Tim - Thưởng thức Bê Chao.
-* **Ngày 2:** Khám phá Thác Dải Yếm - Cầu kính Bạch Long (Cầu kính đi bộ dài nhất thế giới) - Bản Áng.
-* **Ngày 3:** Chợ phiên Mộc Châu - Mua đặc sản bánh sữa, hồng sấy - Trở về Hà Nội.
+\n* **Ngày 2:** Khám phá Thác Dải Yếm - Cầu kính Bạch Long (Cầu kính đi bộ dài nhất thế giới) - Bản Áng.
+\n* **Ngày 3:** Chợ phiên Mộc Châu - Mua đặc sản bánh sữa, hồng sấy - Trở về Hà Nội.
 \n*Vui lòng cung cấp khóa API trong Settings > Secrets để kích hoạt trải nghiệm trí tuệ nhân tạo hoàn hảo nhất!*`
       });
     }
@@ -81,18 +102,22 @@ Hãy tạo cấu trúc lịch trình chất lượng cao sử dụng Markdown. S
 
 Vui lòng chia sẻ lịch trình theo từng ngày, nêu rõ thời gian khởi hành bằng xe Limousine từ Hà Nội (khoảng 4-5 tiếng đi xe dọc quốc lộ 6), các điểm dừng nghỉ dọc đường, điểm chụp ảnh check-in tuyệt đẹp, các quán ăn ngon nổi tiếng của người bản xứ và lời khuyên chuẩn bị trang phục, thời tiết Mộc Châu.`;
 
-    const result = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: prompt,
-      config: {
-        systemInstruction,
+    console.log("[AI Planner] Generation starting with model:", modelName);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 2000,
         temperature: 0.7,
-        tools: [{ googleSearch: {} }]
+      },
+      systemInstruction: {
+        role: "system",
+        parts: [{ text: systemInstruction }]
       }
-    });
+    } as any);
 
     console.log("[AI Planner] Generation successful");
-    const text = result.text;
+    const response = result.response;
+    const text = response.text();
     if (!text) {
       console.error("[AI Planner] No text in response", JSON.stringify(result));
       throw new Error("Mô hình không trả về nội dung (có thể do bộ lọc an toàn hoặc giới hạn kĩ thuật).");
@@ -101,7 +126,7 @@ Vui lòng chia sẻ lịch trình theo từng ngày, nêu rõ thời gian khởi
     res.json({
       success: true,
       itinerary: text,
-      groundingMetadata: result.candidates?.[0]?.groundingMetadata
+      groundingMetadata: response.candidates?.[0]?.groundingMetadata
     });
 
   } catch (error: any) {

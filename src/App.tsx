@@ -170,23 +170,33 @@ export default function App() {
 
   const deleteNotification = async (id: string) => {
     try {
+      // Optimistic update
+      const updated = notifications.filter(n => n.id !== id);
+      setNotifications(updated);
+      
       await deleteDoc(doc(db, "notifications", id));
-      // Local state is updated via useFirebaseSync as it listens real-time
+      console.log("Notification deleted from Firestore:", id);
     } catch (error) {
       console.error("Failed to delete notification:", error);
+      alert("Không thể xóa thông báo. Vui lòng thử lại.");
     }
   };
 
   const deleteAllNotifications = async () => {
     if (confirm("Bạn có chắc chắn muốn xóa tất cả thông báo?")) {
       try {
+        // Optimistic update
+        setNotifications([]);
+        
         const batch = writeBatch(db);
         notifications.forEach((n) => {
           batch.delete(doc(db, "notifications", n.id));
         });
         await batch.commit();
+        console.log("All notifications deleted from Firestore");
       } catch (error) {
         console.error("Failed to delete all notifications:", error);
+        alert("Không thể xóa toàn bộ thông báo. Vui lòng thử lại.");
       }
     }
   };
