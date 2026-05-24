@@ -55,26 +55,29 @@ export const saveBookingToFirebase = async (booking: Booking) => {
   }
 };
 
-export const updateBookingStatusInFirebase = async (bookingId: string, booking: Booking) => {
-  // Sync to local first
-  const current = getLocalList<Booking>("bookings", []);
-  const existingIndex = current.findIndex(b => b.id === bookingId);
-  if (existingIndex > -1) {
-    current[existingIndex] = booking;
-  } else {
-    current.push(booking);
+export const updateStatusInFirebase = async (id: string, data: any, collectionName: string = "bookings") => {
+  // Try saving to Firebase regardless of auth state
+  try {
+    const sanitizedData = JSON.parse(JSON.stringify(data));
+    await setDoc(doc(db, collectionName, id), sanitizedData, { merge: true });
+    console.log(`Successfully updated ${id} in ${collectionName}`);
+  } catch (error) {
+    console.warn(`Could not update ${id} in ${collectionName} to Firebase:`, error);
   }
-  setLocalList("bookings", current);
 
-  if (true) { // Allow updating without real auth if needed
-    try {
-      // Remove undefined values
-      const sanitizedBooking = JSON.parse(JSON.stringify(booking));
-      await setDoc(doc(db, "bookings", bookingId), sanitizedBooking, { merge: true });
-    } catch (error) {
-      console.warn("Could not update booking status to Firebase, saved locally:", error);
+  // Also sync locally if it's bookings
+  if (collectionName === "bookings") {
+    const current = getLocalList<Booking>("bookings", []);
+    const existingIndex = current.findIndex(b => b.id === id);
+    if (existingIndex > -1) {
+      current[existingIndex] = { ...current[existingIndex], ...data };
+      setLocalList("bookings", current);
     }
   }
+};
+
+export const updateBookingStatusInFirebase = async (bookingId: string, booking: Booking) => {
+  await updateStatusInFirebase(bookingId, booking, "bookings");
 };
 
 export const saveBlockedSeatToFirebase = async (seat: BlockedSeat) => {

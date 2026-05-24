@@ -22,6 +22,7 @@ import { signOut } from "firebase/auth";
 import { 
   saveBookingToFirebase, 
   updateBookingStatusInFirebase, 
+  updateStatusInFirebase,
   saveUserToFirebase,
   saveConfigToFirebase,
   saveNotificationToFirebase,
@@ -158,14 +159,33 @@ export default function App() {
     }
   };
 
-  const markNotificationAsRead = (id: string) => {
-    const updated = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
-    setNotifications(updated);
+  const markNotificationAsRead = async (id: string) => {
+    try {
+      const updated = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
+      setNotifications(updated);
+      await updateStatusInFirebase(id, { isRead: true }, "notifications");
+      console.log("Notification marked as read in Firestore:", id);
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
   };
 
-  const markAllNotificationsAsRead = () => {
-    const updated = notifications.map(n => ({ ...n, isRead: true }));
-    setNotifications(updated);
+  const markAllNotificationsAsRead = async () => {
+    try {
+      const updated = notifications.map(n => ({ ...n, isRead: true }));
+      setNotifications(updated);
+      
+      const batch = writeBatch(db);
+      notifications.forEach((n) => {
+        if (!n.isRead) {
+          batch.update(doc(db, "notifications", n.id), { isRead: true });
+        }
+      });
+      await batch.commit();
+      console.log("All notifications marked as read in Firestore");
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
   };
 
   const deleteNotification = async (id: string) => {

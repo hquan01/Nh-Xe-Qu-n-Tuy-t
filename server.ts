@@ -48,101 +48,67 @@ app.get("/api/test", (req, res) => {
 });
 
 // API endpoint for AI Moc Chau Itinerary Planner
-app.post("/api/chat-itinerary", async (req, res) => {
-  console.log("[AI Planner] POST request received at /api/chat-itinerary");
+app.post("/api/generate-itinerary", async (req, res) => {
+  console.log(`[AI Planner] Received POST request from ${req.ip}`);
   try {
     const { duration, style, budget, groupType, notes } = req.body;
-    console.log("[AI Planner] Payload:", { duration, style, budget, groupType });
+    console.log("[AI Planner] Request params:", { duration, style, budget, groupType });
 
     const ai = getAiClient();
     const modelName = "gemini-1.5-flash"; 
-    const model = ai.getGenerativeModel({ 
-      model: modelName,
-      tools: [{ googleSearch: {} }] as any
-    });
+    const model = ai.getGenerativeModel({ model: modelName });
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.log("[AI Planner] API Key missing, using demo mode");
-      // Graceful fallback with template mock if API key is missing
+      console.log("[AI Planner] Warning: GEMINI_API_KEY is missing. Returning template response.");
       return res.json({
         success: true,
-        itinerary: `### Lịch trình Mầm Đá Mộc Châu Gợi Ý (Bản Demo do thiếu API Key)
-\n**Thời lượng:** ${duration || "3 ngày 2 đêm"} | **Phong cách:** ${style || "Nghỉ dưỡng"} | **Ngân sách:** ${budget || "Tầm trung"} | **Nhóm:** ${groupType || "Cặp đôi"}
-\nDo hệ thống đang trong chế độ chạy thử nghiệm (Chưa kết nối API Key), chúng tôi xin gửi ý tưởng lịch trình chung:
-\n* **Ngày 1:** Hà Nội - Mộc Châu - Đồi Chè Trái Tim - Thưởng thức Bê Chao.
-\n* **Ngày 2:** Khám phá Thác Dải Yếm - Cầu kính Bạch Long (Cầu kính đi bộ dài nhất thế giới) - Bản Áng.
-\n* **Ngày 3:** Chợ phiên Mộc Châu - Mua đặc sản bánh sữa, hồng sấy - Trở về Hà Nội.
-\n*Vui lòng cung cấp khóa API trong Settings > Secrets để kích hoạt trải nghiệm trí tuệ nhân tạo hoàn hảo nhất!*`
+        itinerary: `### Lịch trình Mầm Đá Mộc Châu Gợi Ý (Chế độ chạy thử)
+\n**Thời lượng:** ${duration || "3 ngày 2 đêm"} | **Phong cách:** ${style || "Khám phá"} | **Ngân sách:** ${budget || "Tầm trung"} | **Nhóm:** ${groupType || "Cặp đôi"}
+\nHiện tại hệ thống AI đang ở chế độ chờ (Chưa có API Key), mời bạn tham khảo lịch trình chuẩn:
+\n* **Ngày 1:** Hà Nội - Mộc Châu - Đồi Chè Trái Tim - Thưởng thức Bê Chao nóng hổi.
+\n* **Ngày 2:** Khám phá Thác Dải Yếm - Cầu kính Bạch Long (Kỷ lục thế giới) - Rừng thông bản Áng lãng mạn.
+\n* **Ngày 3:** Chợ phiên - Mua sắm đặc sản mận hậu, bánh sữa - Trở về Hà Nội.
+\n*Hãy cung cấp khóa API trong phần cài đặt để trải nghiệm AI đầy đủ nhất!*`
       });
     }
 
-    const systemInstruction = `Bạn là một chuyên gia bản địa am hiểu sâu sắc về du lịch Mộc Châu, Sơn La, Việt Nam. 
-Hãy đóng vai Đại sứ Du lịch của hệ thống Xe Đi Mộc Châu, viết lịch trình chi tiết bằng tiếng Việt, giọng điệu chuyên nghiệp, đầy nhiệt huyết, giàu chất thẩm mỹ, chăm sóc khách hàng chu đáo.
-Gợi ý chi tiết từng bữa ăn, chỗ ở, phương tiện di chuyển (xe Limousine từ Hà Nội) và các điểm tham quan phù hợp nhất với yêu cầu của người dùng.
+    const systemInstruction = `Bạn là chuyên gia du lịch am hiểu nhất về Mộc Châu. 
+Hãy đóng vai Đại sứ Du lịch của hệ thống 'Xe Đi Mộc Châu', viết lịch trình bằng tiếng Việt, giọng điệu chuyên nghiệp, mến khách và đầy cảm hứng.
+Kết hợp các địa danh: Đồi chè Trái Tim, Thung lũng Nà Ka, Thác Dải Yếm, Cầu kính Bạch Long, Rừng thông bản Áng...
+Tặng lời khuyên về ẩm thực bản địa: Bê Chao, Cá suối, Trâu gác bếp.`;
 
-Thông tin về các địa điểm nổi tiếng ở Mộc Châu để bạn lồng ghép hợp lý:
-- Đồi chè Trái Tim (bản Ôn): Đẹp nhất vào buổi sáng sớm, nên thuê trang phục dân tộc chụp ảnh.
-- Thung lũng mận Nà Ka: Mùa hoa mận nở (tháng 12 - tháng 1), mùa quả chín (tháng 4 - tháng 5).
-- Thác Dải Yếm & Cầu kính Tình Yêu.
-- Cầu kính Bạch Long (xã Mường Sang): Cầu kính đi bộ dài nhất thế giới, giá vé khoảng 550.000đ-650.000đ.
-- Rừng thông bản Áng: Hồ nước trong vắt, cắm trại, đạp xe đạp đôi, vườn dâu tây Chimi.
-- Đỉnh Pha Luông: Dành cho dân phượt, leo núi mạo hiểm.
-- Happy Land Mộc Châu: Vườn hoa đa sắc màu rộng lớn, các trò chơi mạo hiểm nhẹ.
-- Ẩm thực Mộc Châu: Bê Chao (thịt bê non chao dầu nóng hổi ròn rụm), cá suối nướng, trâu gác bếp, cải mèo xào, sữa bò tươi Mộc Châu, hồng giòn, mận hậu.
+    const prompt = `Lập lịch trình chi tiết đi Mộc Châu:
+- Thời gian: ${duration}
+- Phong cách: ${style}
+- Ngân sách: ${budget}
+- Đối tượng: ${groupType}
+- Lưu ý: ${notes || "Không có"}
+Vui lòng trình bày bằng Markdown, sử dụng emoji sinh động.`;
 
-Hãy tạo cấu trúc lịch trình chất lượng cao sử dụng Markdown. Sử dụng các emoji phù hợp để làm lịch trình sống động. Bao gồm ước lượng chi phí cho từng hạng mục để người dùng dễ theo dõi.`;
-
-    const prompt = `Hãy lập kế hoạch lịch trình chi tiết cho chuyến đi Mộc Châu với các thông số sau:
-- Thời gian: ${duration || "2 ngày 1 đêm"}
-- Phong cách du lịch: ${style || "Kết hợp check-in và nghỉ dưỡng"}
-- Ngân sách dự kiến: ${budget || "Tầm trung"}
-- Đối tượng đi cùng: ${groupType || "Nhóm bạn/Gia đình"}
-- Yêu cầu đặc biệt/Lưu ý thêm: ${notes || "Không có yêu cầu đặc biệt"}
-
-Vui lòng chia sẻ lịch trình theo từng ngày, nêu rõ thời gian khởi hành bằng xe Limousine từ Hà Nội (khoảng 4-5 tiếng đi xe dọc quốc lộ 6), các điểm dừng nghỉ dọc đường, điểm chụp ảnh check-in tuyệt đẹp, các quán ăn ngon nổi tiếng của người bản xứ và lời khuyên chuẩn bị trang phục, thời tiết Mộc Châu.`;
-
-    console.log("[AI Planner] Generation starting with model:", modelName);
+    console.log("[AI Planner] Calling Gemini API...");
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         maxOutputTokens: 2000,
         temperature: 0.7,
-      },
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: systemInstruction }]
       }
-    } as any);
+    });
 
-    console.log("[AI Planner] Generation successful");
-    const response = result.response;
+    const response = await result.response;
     const text = response.text();
-    if (!text) {
-      console.error("[AI Planner] No text in response", JSON.stringify(result));
-      throw new Error("Mô hình không trả về nội dung (có thể do bộ lọc an toàn hoặc giới hạn kĩ thuật).");
-    }
-
+    
+    console.log("[AI Planner] Generation successful. Sending response.");
     res.json({
       success: true,
-      itinerary: text,
-      groundingMetadata: response.candidates?.[0]?.groundingMetadata
+      itinerary: text
     });
 
   } catch (error: any) {
-    console.error("Error in AI itinerary planner:", error);
-    
-    let message = "Có lỗi xảy ra khi gọi trợ lý ảo. Vui lòng thử lại sau.";
-    let status = 500;
-
-    if (error.status === 429 || error.message?.includes("429") || error.message?.includes("RESOURCE_EXHAUSTED")) {
-      message = "Hệ thống đang đạt giới hạn lượt yêu cầu (Quota Limit). Quý khách vui lòng đợi khoảng 60 giây và nhấn 'Thiết Kế Tour' lần nữa để thử lại.";
-      status = 429;
-    }
-
-    res.status(status).json({
+    console.error("[AI Planner] ERROR:", error.message);
+    res.status(500).json({
       success: false,
-      message,
+      message: "Trợ lý AI đang bận hoặc gặp sự cố kỹ thuật. Vui lòng thử lại sau 30 giây.",
       error: error.message
     });
   }

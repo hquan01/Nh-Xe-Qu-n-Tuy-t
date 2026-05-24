@@ -41,7 +41,7 @@ export default function AIPlanner() {
     }, 2800);
 
     try {
-      const response = await fetch("/api/chat-itinerary", {
+      const response = await fetch("/api/generate-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
