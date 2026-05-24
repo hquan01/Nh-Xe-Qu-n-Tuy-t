@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { 
   BookOpen, Heart, Search, Compass, Utensils, Calendar, Sparkles, 
   MapPin, Clock, ArrowRight, CheckCircle2, Bookmark, Flame, 
-  Share2, ArrowLeft, Bus, Camera
+  Share2, ArrowLeft, Bus, Camera, Eye
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { GuideArticle } from "../types";
@@ -16,6 +16,7 @@ export default function TravelGuide({ articles }: TravelGuideProps) {
   const [selectedCategory, setSelectedCategory] = useState<"all" | "checkin" | "food" | "tips" | "season">("all");
   const [readingArticle, setReadingArticle] = useState<GuideArticle | null>(null);
   const [likedArticles, setLikedArticles] = useState<Record<string, boolean>>({});
+  const [savedArticles, setSavedArticles] = useState<Record<string, boolean>>({});
   const [displayCount, setDisplayCount] = useState(4);
   
   // Packing Tool state
@@ -34,6 +35,34 @@ export default function TravelGuide({ articles }: TravelGuideProps) {
       ...prev,
       [id]: !prev[id]
     }));
+  };
+
+  const toggleSave = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSavedArticles(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const handleShare = (article: GuideArticle, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (navigator.share) {
+      navigator.share({
+        title: article.title,
+        text: article.excerpt,
+        url: window.location.href,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Đã sao chép liên kết bài viết!");
+    }
+  };
+
+  const handleReadArticle = (article: GuideArticle) => {
+    setReadingArticle(article);
+    // Simulate updating view count locally
+    article.views += 1;
   };
 
   const handleTogglePacking = (id: number) => {
@@ -133,7 +162,7 @@ export default function TravelGuide({ articles }: TravelGuideProps) {
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
                       className="bg-white border border-stone-200 rounded-2xl overflow-hidden hover:shadow-md transition-all flex flex-col group cursor-pointer"
-                      onClick={() => setReadingArticle(article)}
+                      onClick={() => handleReadArticle(article)}
                       id={`article_card_${article.id}`}
                     >
                       {/* Image Frame */}
@@ -184,17 +213,39 @@ export default function TravelGuide({ articles }: TravelGuideProps) {
                           </span>
 
                           <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-0.5 text-[10px] text-stone-400 font-bold bg-stone-50 px-2 py-0.5 rounded-md">
+                              <Eye className="w-3 h-3" />
+                              <span>{article.views}</span>
+                            </div>
                             <button
                               type="button"
                               onClick={(e) => toggleLike(article.id, e)}
-                              className={`flex items-center space-x-1 p-1 px-2.5 bg-stone-50 hover:bg-rose-50 rounded-lg text-xs font-semibold transition-colors ${
-                                liked ? "text-rose-600 bg-rose-50" : "text-stone-500 hover:text-rose-600"
+                              className={`flex items-center space-x-1 p-1 px-2 bg-stone-50 hover:bg-rose-50 rounded-lg text-xs font-semibold transition-colors ${
+                                liked ? "text-rose-600 bg-rose-50" : "text-stone-400 hover:text-rose-600"
                               }`}
                               title={liked ? "Bỏ thích" : "Yêu thích"}
                               id={`like_btn_${article.id}`}
                             >
                               <Heart className={`w-3.5 h-3.5 ${liked ? "fill-current text-rose-600" : ""}`} />
-                              <span className="font-mono text-[11px]">{article.likes + (liked ? 1 : 0)}</span>
+                              <span className="font-mono text-[10px]">{article.likes + (liked ? 1 : 0)}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => toggleSave(article.id, e)}
+                              className={`p-1 px-2 bg-stone-50 hover:bg-emerald-50 rounded-lg text-xs font-semibold transition-colors ${
+                                savedArticles[article.id] ? "text-emerald-600 bg-emerald-50" : "text-stone-400 hover:text-emerald-600"
+                              }`}
+                              title={savedArticles[article.id] ? "Bỏ lưu" : "Lưu bài viết"}
+                            >
+                              <Bookmark className={`w-3.5 h-3.5 ${savedArticles[article.id] ? "fill-current text-emerald-600" : ""}`} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => handleShare(article, e)}
+                              className="p-1 px-2 bg-stone-50 hover:bg-emerald-50 rounded-lg text-stone-400 hover:text-emerald-600 transition-colors"
+                              title="Chia sẻ"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -344,7 +395,10 @@ export default function TravelGuide({ articles }: TravelGuideProps) {
                   <span>•</span>
                   <span>{readingArticle.date}</span>
                   <span>•</span>
-                  <span>{readingArticle.readTime} đọc</span>
+                  <div className="flex items-center space-x-1">
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>{readingArticle.views}</span>
+                  </div>
                 </div>
 
                 <h2 className="text-xl sm:text-2xl font-extrabold text-[#1b4332] tracking-tight leading-snug">
@@ -385,15 +439,35 @@ export default function TravelGuide({ articles }: TravelGuideProps) {
                     <button
                       type="button"
                       onClick={(e) => toggleLike(readingArticle.id, e)}
-                      className={`flex items-center space-x-1.5 px-3.5 py-2 bg-stone-50 rounded-xl text-xs font-bold transition-all ${
+                      className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                         likedArticles[readingArticle.id] 
                           ? "text-rose-600 bg-rose-50 border border-rose-100" 
-                          : "text-stone-500 hover:text-rose-600 hover:bg-rose-50"
+                          : "text-stone-500 bg-stone-50 hover:text-rose-600 hover:bg-rose-50"
                       }`}
                       id="modal_like_btn"
                     >
                       <Heart className={`w-4 h-4 ${likedArticles[readingArticle.id] ? "fill-current text-rose-600" : ""}`} />
                       <span>{likedArticles[readingArticle.id] ? "Đã thích" : "Yêu thích"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => toggleSave(readingArticle.id, e)}
+                      className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                        savedArticles[readingArticle.id] 
+                          ? "text-emerald-600 bg-emerald-50 border border-emerald-100" 
+                          : "text-stone-500 bg-stone-50 hover:text-emerald-600 hover:bg-emerald-50"
+                      }`}
+                    >
+                      <Bookmark className={`w-4 h-4 ${savedArticles[readingArticle.id] ? "fill-current text-emerald-600" : ""}`} />
+                      <span>{savedArticles[readingArticle.id] ? "Đã lưu" : "Lưu bài"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleShare(readingArticle, e)}
+                      className="flex items-center space-x-1.5 px-3.5 py-2 bg-stone-50 text-stone-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl text-xs font-bold transition-all"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      <span>Chia sẻ</span>
                     </button>
                   </div>
 

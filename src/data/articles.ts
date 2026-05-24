@@ -12,6 +12,7 @@ export const INITIAL_ARTICLES: GuideArticle[] = [
     date: "20/05/2026",
     views: 3420,
     likes: 1240,
+    saves: 854,
     isHot: true,
     albumImages: [
       "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?ixlib=rb-4.0.3&auto=format&fit=cover&w=400&q=80",
@@ -36,6 +37,7 @@ export const INITIAL_ARTICLES: GuideArticle[] = [
     date: "18/05/2026",
     views: 2980,
     likes: 954,
+    saves: 420,
     content: [
       "Bạn đang tìm kiếm những góc chụp ảnh 'ảo diệu' để làm mới trang cá nhân? Cao nguyên Mộc Châu chính là một thiên đường studio ngoài trời khổng lồ dành cho bạn. Dưới đây là 7 địa điểm không đi là uổng phí:",
       "1. Đồi Chè Trái Tim Đới Chè Đài Loan: Nằm tại nông trường Mộc Châu cổ kính. Những luống chè xanh mướt được tạo hình trái tim lãng mạn là biểu tượng lứa đôi của vùng đất này. Thời gian rực rỡ nhất là sáng sớm lúc sương chưa tan.",
@@ -56,6 +58,7 @@ export const INITIAL_ARTICLES: GuideArticle[] = [
     date: "15/05/2026",
     views: 4120,
     likes: 1890,
+    saves: 1120,
     isHot: true,
     content: [
       "Khám phá một vùng đất không chỉ qua đôi mắt mà còn qua hương vị ẩm thực đặc sắc. Ẩm thực Mộc Châu mang đậm bản sắc vùng cao Tây Bắc, vừa mộc mạc vừa cay tê hấp dẫn.",
@@ -76,6 +79,7 @@ export const INITIAL_ARTICLES: GuideArticle[] = [
     date: "10/05/2026",
     views: 1890,
     likes: 720,
+    saves: 340,
     content: [
       "Mỗi mùa hoa về, Mộc Châu lại khoác lên mình một màu áo mới kiêu sa lộng lẫy khác nhau. Cùng điểm qua các mùa hoa đẹp rụng rời trái tim du khách nhé:",
       "1. Mùa hoa mận cải mơ trắng muốt (Cuối tháng 12 - Tháng 2 dương lịch): Đây được coi là mùa tình tứ thơ mộng nhất. Khi hoa mơ, hoa mận nở rộ bồng bềnh khắp đỉnh nương đồi tạo nên khung cảnh sương khói huyền ảo như trong tranh.",

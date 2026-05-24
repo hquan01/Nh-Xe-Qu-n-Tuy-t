@@ -55,8 +55,7 @@ app.post("/api/generate-itinerary", async (req, res) => {
     console.log("[AI Planner] Request params:", { duration, style, budget, groupType });
 
     const ai = getAiClient();
-    const modelName = "gemini-1.5-flash"; 
-    const model = ai.getGenerativeModel({ model: modelName });
+    const modelName = "gemini-3.5-flash"; 
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -87,16 +86,17 @@ Tặng lời khuyên về ẩm thực bản địa: Bê Chao, Cá suối, Trâu 
 Vui lòng trình bày bằng Markdown, sử dụng emoji sinh động.`;
 
     console.log("[AI Planner] Calling Gemini API...");
-    const result = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: modelName,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
+      config: {
+        systemInstruction: systemInstruction,
         maxOutputTokens: 2000,
         temperature: 0.7,
       }
     });
 
-    const response = await result.response;
-    const text = response.text();
+    const text = response.text;
     
     console.log("[AI Planner] Generation successful. Sending response.");
     res.json({

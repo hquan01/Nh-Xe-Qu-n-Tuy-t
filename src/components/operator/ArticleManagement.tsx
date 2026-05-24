@@ -12,10 +12,17 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
   const [editingArticle, setEditingArticle] = useState<GuideArticle | null>(null);
 
   const handleSave = (updated: GuideArticle) => {
-    const exists = articles.find(a => a.id === updated.id);
+    // Clean up empty lines before saving
+    const cleanedArticle: GuideArticle = {
+      ...updated,
+      content: updated.content.filter(p => p.trim() !== ''),
+      albumImages: updated.albumImages?.filter(url => url.trim() !== '')
+    };
+    
+    const exists = articles.find(a => a.id === cleanedArticle.id);
     const nextArticles = exists 
-      ? articles.map(a => a.id === updated.id ? updated : a)
-      : [...articles, updated];
+      ? articles.map(a => a.id === cleanedArticle.id ? cleanedArticle : a)
+      : [...articles, cleanedArticle];
     onUpdateArticles(nextArticles);
     setEditingArticle(null);
   };
@@ -164,7 +171,7 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
                       rows={3}
                       value={editingArticle.albumImages?.join('\n') || ''} 
                       onChange={e => {
-                        const urls = e.target.value.split('\n').filter(url => url.trim() !== '');
+                        const urls = e.target.value.split('\n');
                         setEditingArticle({...editingArticle, albumImages: urls});
                       }}
                       placeholder="Dán link ảnh tại đây, mỗi dòng 1 link..."
@@ -186,9 +193,9 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
                     <textarea 
                       className="w-full p-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans" 
                       rows={10}
-                      value={editingArticle.content.join('\n\n')} 
+                      value={editingArticle.content.join('\n')} 
                       onChange={e => {
-                        const paragraphs = e.target.value.split('\n\n');
+                        const paragraphs = e.target.value.split('\n');
                         setEditingArticle({...editingArticle, content: paragraphs});
                       }}
                       placeholder="Nội dung bài viết..."

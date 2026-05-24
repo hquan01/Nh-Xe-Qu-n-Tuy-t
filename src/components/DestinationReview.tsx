@@ -28,6 +28,20 @@ export default function DestinationReview({ destinationId, destinationName, isAd
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [displayReviewsCount, setDisplayReviewsCount] = useState(3);
+
+  const averageRating = reviews.length > 0 
+    ? (reviews.reduce((acc, rev) => acc + rev.rating, 0) / reviews.length).toFixed(1)
+    : "0.0";
+
+  const ratingCounts = [5, 4, 3, 2, 1].map(star => ({
+    star,
+    count: reviews.filter(r => r.rating === star).length,
+    percent: reviews.length > 0 ? (reviews.filter(r => r.rating === star).length / reviews.length) * 100 : 0
+  }));
+
+  const visibleReviewsList = reviews.slice(0, displayReviewsCount);
+
   useEffect(() => {
     // Listen to real-time updates from Firebase
     const unsubscribe = listenToReviews(destinationId, (fetchedReviews) => {
@@ -240,14 +254,49 @@ export default function DestinationReview({ destinationId, destinationName, isAd
         )}
       </AnimatePresence>
 
+      {/* Review Summary Dashboard */}
+      {reviews.length > 0 && (
+        <div className="bg-stone-50 border border-stone-200 rounded-3xl p-6 mb-8 flex flex-col md:flex-row gap-8">
+          <div className="md:w-1/3 flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r border-stone-200 pb-6 md:pb-0 md:pr-8">
+            <span className="text-5xl font-black text-stone-900 leading-none mb-2">{averageRating}</span>
+            <div className="flex space-x-0.5 mb-2">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star key={s} className={`w-4 h-4 ${s <= Math.round(Number(averageRating)) ? 'text-amber-400 fill-current' : 'text-stone-200'}`} />
+              ))}
+            </div>
+            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3">Trung bình {reviews.length} đánh giá</p>
+            <div className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter">
+              {Math.round((reviews.filter(r => r.rating >= 4).length / (reviews.length || 1)) * 100)}% Khuyên dùng
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-2">
+            {ratingCounts.map(({ star, count, percent }) => (
+              <div key={star} className="flex items-center space-x-3">
+                <span className="text-[10px] font-black text-stone-500 w-3">{star}</span>
+                <Star className="w-3 h-3 text-stone-300 fill-current" />
+                <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percent}%` }}
+                    className="h-full bg-emerald-500"
+                  />
+                </div>
+                <span className="text-[10px] font-bold text-stone-400 w-8">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         {reviews.length === 0 ? (
           <div className="text-center py-8 bg-stone-50/50 rounded-2xl border border-dashed border-stone-200">
             <p className="text-xs text-stone-400 font-medium italic">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
           </div>
         ) : (
-          reviews.map((review) => (
-            <div key={review.id} className="flex space-x-4 group">
+          visibleReviewsList.map((review) => (
+            <div key={review.id} className="flex space-x-4 group animate-in fade-in slide-in-from-bottom-2 duration-500">
               <img 
                 src={review.userAvatar || `https://ui-avatars.com/api/?name=${review.userName}`} 
                 className="w-10 h-10 rounded-full bg-stone-100 shrink-0" 
@@ -343,6 +392,17 @@ export default function DestinationReview({ destinationId, destinationName, isAd
           ))
         )}
       </div>
+
+      {reviews.length > displayReviewsCount && (
+        <div className="mt-8 flex justify-center">
+          <button 
+            onClick={() => setDisplayReviewsCount(prev => prev + 5)}
+            className="px-6 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-600 text-[10px] font-black uppercase tracking-[0.2em] rounded-full transition-all border border-stone-200"
+          >
+            Xem thêm đánh giá ({reviews.length - displayReviewsCount})
+          </button>
+        </div>
+      )}
 
       {/* Auth Modal Mockup */}
       <AnimatePresence>

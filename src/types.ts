@@ -125,6 +125,7 @@ export interface GuideArticle {
   date: string;
   views: number;
   likes: number;
+  saves: number;
   isHot?: boolean;
   albumImages?: string[];
 }
