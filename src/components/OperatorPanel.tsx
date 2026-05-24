@@ -12,6 +12,7 @@ import AccommodationComboManagement from "./operator/AccommodationComboManagemen
 import DestinationManagement from "./operator/DestinationManagement";
 import ArticleManagement from "./operator/ArticleManagement";
 import ScheduleManagement from "./operator/ScheduleManagement";
+import ReviewManagement from "./operator/ReviewManagement";
 
 interface OperatorPanelProps {
   users: UserType[];
@@ -91,7 +92,7 @@ export default function OperatorPanel({
   onUpdateArticles
 }: OperatorPanelProps) {
   // Navigation tabs inside Operator view
-  const [panelTab, setPanelTab] = useState<"bookings" | "seatLock" | "customers" | "overview" | "travelServices" | "pricing" | "coupons" | "locations" | "content" | "schedules">("bookings");
+  const [panelTab, setPanelTab] = useState<"bookings" | "seatLock" | "customers" | "overview" | "travelServices" | "pricing" | "coupons" | "locations" | "content" | "schedules" | "reviews">("bookings");
   const [activeContentTab, setActiveContentTab] = useState<"destinations" | "articles">("destinations");
   const [userToDelete, setUserToDelete] = useState<any>(null);
 
@@ -434,6 +435,16 @@ export default function OperatorPanel({
               }`}
             >
               Quản lý Nội dung
+            </button>
+            <button
+              onClick={() => setPanelTab("reviews")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+                panelTab === "reviews"
+                  ? "bg-white text-stone-900 shadow-lg font-extrabold"
+                  : "bg-white/10 hover:bg-white/15 text-white"
+              }`}
+            >
+              Quản lý Đánh giá
             </button>
           </div>
         </div>
@@ -1298,6 +1309,12 @@ export default function OperatorPanel({
       {panelTab === "locations" && (
         <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8" id="locations_manager_section">
           <LocationManagement locations={locations} onUpdateLocations={onUpdateLocations} />
+        </div>
+      )}
+
+      {panelTab === "reviews" && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <ReviewManagement destinations={destinations} />
         </div>
       )}
 

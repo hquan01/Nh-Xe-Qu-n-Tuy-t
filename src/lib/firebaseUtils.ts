@@ -52,8 +52,7 @@ export const deleteReviewFromFirebase = async (id: string) => {
 export const listenToReviews = (destinationId: string, callback: (reviews: Review[]) => void) => {
   const q = query(
     collection(db, "reviews"),
-    where("destinationId", "==", destinationId),
-    orderBy("timestamp", "desc")
+    where("destinationId", "==", destinationId)
   );
 
   return onSnapshot(q, (snapshot) => {
@@ -61,6 +60,8 @@ export const listenToReviews = (destinationId: string, callback: (reviews: Revie
     snapshot.forEach((doc) => {
       reviews.push(doc.data() as Review);
     });
+    // Sort on client side to avoid index requirement
+    reviews.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     callback(reviews);
   }, (error) => {
     console.error("Error listening to reviews:", error);

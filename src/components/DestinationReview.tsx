@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Star, MessageSquare, Send, Mail, Facebook, User, X, Edit2, Trash2 } from "lucide-react";
+import { Star, MessageSquare, Send, Mail, Facebook, User, X, Edit2, Trash2, Shield, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Review } from "../types";
 import { saveReviewToFirebase, deleteReviewFromFirebase, listenToReviews } from "../lib/firebaseUtils";
@@ -24,6 +24,9 @@ export default function DestinationReview({ destinationId, destinationName, isAd
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editComment, setEditComment] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     // Listen to real-time updates from Firebase
@@ -53,30 +56,46 @@ export default function DestinationReview({ destinationId, destinationName, isAd
       timestamp: new Date().toISOString(),
     };
 
-    await saveReviewToFirebase(newReview);
-    setComment("");
-    setRating(5);
-    setShowForm(false);
+    setIsSaving(true);
+    setError(null);
+    try {
+      await saveReviewToFirebase(newReview);
+      setComment("");
+      setRating(5);
+      setShowForm(false);
+      setSuccess("Đánh giá của bạn đã được lưu thành công!");
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError("Không thể lưu đánh giá. Vui lòng thử lại.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editComment.trim() || !editingReviewId) return;
 
-    const reviewToUpdate = reviews.find(r => r.id === editingReviewId);
-    if (reviewToUpdate) {
-      const updatedReview = { 
-        ...reviewToUpdate, 
-        comment: editComment, 
-        rating: editRating, 
-        timestamp: new Date().toISOString() 
-      };
-      await saveReviewToFirebase(updatedReview);
+    setIsSaving(true);
+    try {
+      const reviewToUpdate = reviews.find(r => r.id === editingReviewId);
+      if (reviewToUpdate) {
+        const updatedReview = { 
+          ...reviewToUpdate, 
+          comment: editComment, 
+          rating: editRating, 
+          timestamp: new Date().toISOString() 
+        };
+        await saveReviewToFirebase(updatedReview);
+      }
+      setEditingReviewId(null);
+      setEditComment("");
+      setEditRating(5);
+    } catch (err) {
+      setError("Không thể cập nhật đánh giá.");
+    } finally {
+      setIsSaving(false);
     }
-    
-    setEditingReviewId(null);
-    setEditComment("");
-    setEditRating(5);
   };
 
   const handleDelete = async (id: string) => {
@@ -114,9 +133,17 @@ export default function DestinationReview({ destinationId, destinationName, isAd
   return (
     <div className="mt-8 pt-8 border-t border-stone-100">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
-          <MessageSquare className="w-5 h-5 text-emerald-600" />
-          <h4 className="font-black text-stone-900 text-sm uppercase tracking-wider">Đánh giá thực tế ({reviews.length})</h4>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center space-x-2">
+            <MessageSquare className="w-5 h-5 text-emerald-600" />
+            <h4 className="font-black text-stone-900 text-sm uppercase tracking-wider">Đánh giá thực tế ({reviews.length})</h4>
+          </div>
+          {isAdmin && (
+            <div className="flex items-center space-x-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full w-fit">
+              <Shield className="w-3 h-3" />
+              <span className="text-[10px] font-black uppercase tracking-tighter">Moderator Mode</span>
+            </div>
+          )}
         </div>
         <button 
           onClick={() => setShowForm(!showForm)}
@@ -125,6 +152,29 @@ export default function DestinationReview({ destinationId, destinationName, isAd
           {showForm ? "Đóng lại" : "Viết đánh giá"}
         </button>
       </div>
+
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 bg-rose-50 text-rose-600 text-[11px] font-bold rounded-xl border border-rose-100 flex items-center justify-between"
+          >
+            <span>{error}</span>
+            <button onClick={() => setError(null)}><X className="w-4 h-4" /></button>
+          </motion.div>
+        )}
+        {success && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 bg-emerald-50 text-emerald-600 text-[11px] font-bold rounded-xl border border-emerald-100 flex items-center justify-between"
+          >
+            <span>{success}</span>
+            <button onClick={() => setSuccess(null)}><X className="w-4 h-4" /></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showForm && (
@@ -173,10 +223,17 @@ export default function DestinationReview({ destinationId, destinationName, isAd
 
               <button
                 type="submit"
-                className="bg-emerald-600 text-white px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider flex items-center space-x-2 hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-900/10"
+                disabled={isSaving}
+                className={`bg-emerald-600 text-white px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider flex items-center space-x-2 transition-colors shadow-md shadow-emerald-900/10 ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700'}`}
               >
-                <span>Gửi đánh giá</span>
-                <Send className="w-3 h-3" />
+                {isSaving ? (
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                ) : (
+                  <>
+                    <span>Gửi đánh giá</span>
+                    <Send className="w-3 h-3" />
+                  </>
+                )}
               </button>
             </div>
           </motion.form>
