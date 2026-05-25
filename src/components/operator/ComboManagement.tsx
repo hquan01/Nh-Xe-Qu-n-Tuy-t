@@ -69,15 +69,19 @@ export default function ComboManagement({ combos, onUpdateCombos, accommodations
       name: "",
       accommodationId: "",
       images: [],
-      slug: "",
-      tag: "",
-      durationText: "",
+      slug: `combo-${Date.now()}`,
+      tag: "Mới",
+      durationText: "2 Ngày 1 Đêm",
       highlights: [],
       description: "",
       pricePerPerson: 0,
       priceWeekday: 0,
       priceWeekend: 0,
-      originalPrice: 0
+      originalPrice: 0,
+      itinerary: [
+        { day: 1, title: "Hà Nội - Mộc Châu", content: "Di chuyển và nhận phòng" },
+        { day: 2, title: "Mộc Châu - Hà Nội", content: "Tham quan và trở về" }
+      ]
     });
   };
 
@@ -136,7 +140,14 @@ export default function ComboManagement({ combos, onUpdateCombos, accommodations
       {editingCombo && (
         <div className="fixed inset-0 bg-stone-900/50 flex items-center justify-center p-4 backdrop-blur-sm z-50">
           <div className="bg-white p-8 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl">
-            <h3 className="font-black text-lg">Chỉnh sửa: {editingCombo.name}</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-black text-xl text-[#1b4332]">
+                {combos.find(c => c.id === editingCombo.id) ? `Chỉnh sửa: ${editingCombo.name}` : "Thêm Combo Mới"}
+              </h3>
+              <button onClick={() => setEditingCombo(null)} className="p-2 hover:bg-stone-100 rounded-full transition-colors">
+                <X className="w-6 h-6 text-stone-400" />
+              </button>
+            </div>
             {/* Simple form for fields */}
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
