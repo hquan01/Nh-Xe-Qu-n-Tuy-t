@@ -55,6 +55,7 @@ export interface TourCombo {
     title: string;
     content: string;
   }[];
+  isActive?: boolean;
 }
 
 export interface Booking {

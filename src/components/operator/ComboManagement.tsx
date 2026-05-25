@@ -13,6 +13,12 @@ export default function ComboManagement({ combos, onUpdateCombos, accommodations
   const [editingCombo, setEditingCombo] = useState<TourCombo | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
 
+  const handleToggleActive = (combo: TourCombo) => {
+    const updated = { ...combo, isActive: combo.isActive === false ? false : true };
+    const nextCombos = combos.map(c => c.id === combo.id ? { ...c, isActive: !updated.isActive } : c);
+    onUpdateCombos(nextCombos);
+  };
+
   const handleDelete = (id: string) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa combo này?")) {
       const nextCombos = combos.filter(c => c.id !== id);
@@ -78,6 +84,7 @@ export default function ComboManagement({ combos, onUpdateCombos, accommodations
       priceWeekday: 0,
       priceWeekend: 0,
       originalPrice: 0,
+      isActive: true,
       itinerary: [
         { day: 1, title: "Hà Nội - Mộc Châu", content: "Di chuyển và nhận phòng" },
         { day: 2, title: "Mộc Châu - Hà Nội", content: "Tham quan và trở về" }
@@ -132,6 +139,25 @@ export default function ComboManagement({ combos, onUpdateCombos, accommodations
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+
+            {/* Toggle Active status */}
+            <div className="flex justify-between items-center pt-3 border-t border-stone-100">
+              <div className="flex items-center space-x-2">
+                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${combo.isActive !== false ? "bg-emerald-50 text-emerald-700 border border-emerald-150" : "bg-stone-100 text-stone-400 border border-stone-200"}`}>
+                  {combo.isActive !== false ? "ĐANG BẬT" : "ĐANG TẮT"}
+                </span>
+                <span className="text-[11px] text-stone-500 font-bold">Hiện trên website</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleToggleActive(combo)}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${combo.isActive !== false ? "bg-emerald-600" : "bg-stone-200"}`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${combo.isActive !== false ? "translate-x-4" : "translate-x-0"}`}
+                />
+              </button>
             </div>
           </div>
         ))}
@@ -257,6 +283,25 @@ export default function ComboManagement({ combos, onUpdateCombos, accommodations
                   onChange={e => setEditingCombo({...editingCombo, tag: e.target.value})}
                 />
               </div>
+
+              <div className="col-span-2 border-t border-stone-100 pt-3">
+                <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Trạng thái Hoạt động (Bật/Tắt Combo)</label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCombo({ ...editingCombo, isActive: editingCombo.isActive !== false ? false : true })}
+                    className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${editingCombo.isActive !== false ? "bg-emerald-600" : "bg-stone-300"}`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${editingCombo.isActive !== false ? "translate-x-4.5" : "translate-x-0"}`}
+                    />
+                  </button>
+                  <span className="text-xs font-bold text-stone-700">
+                    {editingCombo.isActive !== false ? "Đang Bật và Hiển thị trên Web" : "Đang Tắt và Ẩn khỏi Web"}
+                  </span>
+                </div>
+              </div>
+
               <div className="col-span-2">
                 <label className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Lịch trình chi tiết (Ngày | Tiêu đề | Nội dung - Mỗi dòng 1 ngày)</label>
                 <textarea 

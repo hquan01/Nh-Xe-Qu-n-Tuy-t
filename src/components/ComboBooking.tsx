@@ -331,7 +331,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
 
             {/* List of high-quality Tour Combos */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-              {combos.map((combo) => (
+              {(combos || []).filter((combo) => combo.isActive !== false).map((combo) => (
                 <div
                   key={combo.id}
                   id={`combo_card_${combo.id}`}
