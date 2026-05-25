@@ -52,6 +52,22 @@ const isHanoiRoute = (point: string) => {
   );
 };
 
+const getComboBaseNights = (combo: TourCombo | null) => {
+  if (!combo) return 1;
+  const dur = (combo.durationText || "").toLowerCase();
+  const primaryPart = dur.split('(')[0].trim();
+  if (primaryPart.includes("3 ngày 2 đêm") || primaryPart.includes("3n2đ") || primaryPart.includes("2 đêm")) {
+    return 2;
+  }
+  if (primaryPart.includes("4 ngày 3 đêm") || primaryPart.includes("4n3đ") || primaryPart.includes("3 đêm")) {
+    return 3;
+  }
+  if (primaryPart.includes("2 ngày 1 đêm") || primaryPart.includes("2n1đ") || primaryPart.includes("1 đêm")) {
+    return 1;
+  }
+  return 1; // Default
+};
+
 export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment, currentUser, bookings, onDeductPoints, combos, accommodations, locations, coupons = [] }: ComboBookingProps) {
   const [selectedCombo, setSelectedCombo] = useState<TourCombo | null>(null);
   const [selectedAcc, setSelectedAcc] = useState<Accommodation | null>(null);
@@ -146,17 +162,15 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
     }
 
     // Automatically synchronize the number of nights matching the combo's duration
-    const dur = (combo.durationText || "").toLowerCase();
-    if (dur.includes("3 ngày 2 đêm") || dur.includes("3n2đ") || dur.includes("2 đêm")) {
-      setNights(2);
-    } else if (dur.includes("4 ngày 3 đêm") || dur.includes("4n3đ") || dur.includes("3 đêm")) {
-      setNights(3);
-    } else if (dur.includes("2 ngày 1 đêm") || dur.includes("2n1đ") || dur.includes("1 đêm")) {
-      setNights(1);
-    } else {
-      setNights(1); // Standard default
-    }
+    setNights(getComboBaseNights(combo));
   };
+
+  // Keep nights in sync with selectedCombo changes automatically
+  useEffect(() => {
+    if (selectedCombo) {
+      setNights(getComboBaseNights(selectedCombo));
+    }
+  }, [selectedCombo]);
 
   const calculateTotalComboPrice = () => {
     if (!selectedCombo || !selectedAcc) return 0;
@@ -178,8 +192,9 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
     const payingPassengers = adults + children; // Children >= 4 paid full
     const baseComboPriceForGroup = currentPricePerPerson * payingPassengers;
 
-    // Surcharge for extra nights:
-    const extraNights = nights - 1;
+    // Surcharge for extra nights beyond the standard included nights:
+    const baseNights = getComboBaseNights(selectedCombo);
+    const extraNights = Math.max(0, nights - baseNights);
     const roomRatePerNight = selectedAcc.roomTypes?.[roomTypeIndex]?.pricePerNight || 0;
     const roomQuantityNeeded = Math.ceil(payingPassengers / 2);
     const extraNightsSurcharge = extraNights > 0 ? (roomRatePerNight * extraNights * roomQuantityNeeded) : 0;
@@ -255,14 +270,20 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
       return;
     }
 
-    setIsSubmitting(true);
-
-    const chosenRoom = selectedAcc.roomTypes?.[roomTypeIndex];
-    if (!chosenRoom) {
-      setErrorMsg("Hạng phòng không hợp lệ hoặc có sự cố khi lựa chọn phòng!");
-      setIsSubmitting(false);
+    const baseNights = getComboBaseNights(selectedCombo);
+    if (nights !== baseNights) {
+      setErrorMsg(`Số đêm nghỉ của bạn (${nights} đêm) phải phù hợp với thời gian tiêu chuẩn của Combo (${selectedCombo.durationText}). Vui lòng chọn đúng ${baseNights} Đêm.`);
       return;
     }
+
+    setIsSubmitting(true);
+
+    const chosenRoom = selectedAcc.roomTypes?.[roomTypeIndex] || selectedAcc.roomTypes?.[0] || {
+      name: "Luxury Deluxe",
+      pricePerNight: 0,
+      capacity: "2 Người lớn",
+      description: "Tiêu chuẩn phòng Luxury sang trọng đầy đủ tiện nghi."
+    };
     const payingPassengers = adults + children; // Children >= 4 paid full
     const totalPrice = calculateTotalComboPrice();
     const returnDateObj = new Date(travelDate);
@@ -446,7 +467,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                       <div className="space-y-2">
                         <span className="text-xs font-bold text-[#1b4332] uppercase tracking-wider block">Combo bao gồm:</span>
                         <ul className="space-y-1.5 text-xs text-stone-600">
-                          {combo.highlights.map((highlight, index) => (
+                          {(combo.highlights || []).map((highlight, index) => (
                             <li key={index} className="flex items-start space-x-2">
                               <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                               <span>{highlight}</span>
@@ -606,7 +627,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                     Điểm nổi bật của khách sạn
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {selectedAcc?.amenities.map((amen, i) => (
+                    {(selectedAcc?.amenities || []).map((amen, i) => (
                       <span key={i} className="text-[10px] px-2 py-0.5 bg-white border border-stone-200 text-stone-600 rounded-lg">
                         {amen}
                       </span>
@@ -626,21 +647,19 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
 
                     {/* Select Room type inside hotel */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-stone-700 block">1. Lựa chọn Hạng Phòng:</label>
-                      <select
-                        value={roomTypeIndex}
-                        onChange={(e) => setRoomTypeIndex(Number(e.target.value))}
-                        className="w-full bg-white px-3 py-2 border border-stone-200 rounded-lg text-sm font-semibold text-stone-800 cursor-pointer focus:outline-none focus:border-emerald-500"
+                      <label className="text-xs font-semibold text-stone-700 block">1. Gói Combo & Hạng Phòng:</label>
+                      <div 
                         id="select_room_type"
+                        className="w-full bg-[#f4f7f6] px-4 py-3 border border-emerald-100 rounded-lg text-sm font-bold text-[#1b4332] font-sans leading-snug shadow-sm flex flex-col gap-1.5"
                       >
-                        {selectedAcc?.roomTypes.map((room, idx) => (
-                          <option key={idx} value={idx}>
-                            {room.name} (+{(room.pricePerNight).toLocaleString()}đ/đêm)
-                          </option>
-                        ))}
-                      </select>
-                      <span className="text-[10px] text-stone-400 leading-tight block font-sans mt-1">
-                        Sức chứa tối đa: {selectedAcc?.roomTypes?.[roomTypeIndex]?.capacity || "Yêu cầu hành khách"}. {selectedAcc?.roomTypes?.[roomTypeIndex]?.description || ""}
+                        <span className="text-stone-800 font-sans font-extrabold">{selectedCombo?.name}</span>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-emerald-800 font-semibold">
+                          <span>• Khách sạn: <b>{selectedAcc?.name}</b></span>
+                          <span>• Tiêu chuẩn phòng: <b>{selectedAcc?.roomTypes?.[0]?.name || "Luxury Deluxe"}</b></span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-stone-500 leading-tight block font-sans mt-1 cursor-not-allowed">
+                        Sức chứa chuẩn của phòng: {selectedAcc?.roomTypes?.[roomTypeIndex]?.capacity || "2 người lớn"}. {selectedAcc?.roomTypes?.[roomTypeIndex]?.description || "Phòng nghỉ thiết kế sang trọng, hiện đại đầy đủ tiện nghi."}
                       </span>
                     </div>
 
@@ -1183,7 +1202,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                     <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 shadow-sm border-dashed">
                       <h4 className="text-xs font-black text-emerald-900 uppercase tracking-widest mb-4">Dịch vụ bao gồm trọn gói</h4>
                       <ul className="space-y-3">
-                        {detailCombo.highlights.map((h, i) => (
+                        {(detailCombo.highlights || []).map((h, i) => (
                           <li key={i} className="flex items-start gap-2 text-[11px] text-stone-700">
                             <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                             <span className="font-medium font-sans leading-relaxed">{h}</span>
