@@ -144,6 +144,18 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
       // Select first room type by default
       setRoomTypeIndex(0);
     }
+
+    // Automatically synchronize the number of nights matching the combo's duration
+    const dur = (combo.durationText || "").toLowerCase();
+    if (dur.includes("3 ngày 2 đêm") || dur.includes("3n2đ") || dur.includes("2 đêm")) {
+      setNights(2);
+    } else if (dur.includes("4 ngày 3 đêm") || dur.includes("4n3đ") || dur.includes("3 đêm")) {
+      setNights(3);
+    } else if (dur.includes("2 ngày 1 đêm") || dur.includes("2n1đ") || dur.includes("1 đêm")) {
+      setNights(1);
+    } else {
+      setNights(1); // Standard default
+    }
   };
 
   const calculateTotalComboPrice = () => {
@@ -168,7 +180,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
 
     // Surcharge for extra nights:
     const extraNights = nights - 1;
-    const roomRatePerNight = selectedAcc.roomTypes[roomTypeIndex].pricePerNight;
+    const roomRatePerNight = selectedAcc.roomTypes?.[roomTypeIndex]?.pricePerNight || 0;
     const roomQuantityNeeded = Math.ceil(payingPassengers / 2);
     const extraNightsSurcharge = extraNights > 0 ? (roomRatePerNight * extraNights * roomQuantityNeeded) : 0;
 
@@ -245,7 +257,12 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
 
     setIsSubmitting(true);
 
-    const chosenRoom = selectedAcc.roomTypes[roomTypeIndex];
+    const chosenRoom = selectedAcc.roomTypes?.[roomTypeIndex];
+    if (!chosenRoom) {
+      setErrorMsg("Hạng phòng không hợp lệ hoặc có sự cố khi lựa chọn phòng!");
+      setIsSubmitting(false);
+      return;
+    }
     const payingPassengers = adults + children; // Children >= 4 paid full
     const totalPrice = calculateTotalComboPrice();
     const returnDateObj = new Date(travelDate);
@@ -409,7 +426,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                           <div className="flex items-center space-x-1">
                             <span className="text-stone-500">Thời gian:</span>
                             <span className="text-stone-800 font-extrabold font-sans">
-                              {combo.durationText.split('(')[0].trim().replace("2 Ngày 1 Đêm", "3 Ngày 2 Đêm")}
+                              {combo.durationText ? combo.durationText.split('(')[0].trim() : "2 Ngày 1 Đêm"}
                             </span>
                           </div>
                         </div>
@@ -623,7 +640,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                         ))}
                       </select>
                       <span className="text-[10px] text-stone-400 leading-tight block font-sans mt-1">
-                        Sức chứa tối đa: {selectedAcc?.roomTypes[roomTypeIndex].capacity}. {selectedAcc?.roomTypes[roomTypeIndex].description}
+                        Sức chứa tối đa: {selectedAcc?.roomTypes?.[roomTypeIndex]?.capacity || "Yêu cầu hành khách"}. {selectedAcc?.roomTypes?.[roomTypeIndex]?.description || ""}
                       </span>
                     </div>
 
@@ -634,12 +651,15 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                         <select
                           value={nights}
                           onChange={(e) => setNights(Number(e.target.value))}
-                          className="w-full bg-white px-3 py-2 border border-stone-200 rounded-lg text-sm font-semibold text-stone-800 cursor-pointer focus:outline-none"
+                          className="w-full bg-white px-3 py-2 border border-stone-200 rounded-lg text-sm font-semibold text-stone-800 cursor-pointer focus:outline-none focus:border-emerald-500"
                         >
                           <option value="1">1 Đêm (2N1Đ)</option>
                           <option value="2">2 Đêm (3N2Đ)</option>
                           <option value="3">3 Đêm (4N3Đ)</option>
                         </select>
+                        <span className="text-[10px] text-stone-500 block font-sans mt-1">
+                          Tiêu chuẩn: <b className="text-emerald-700">{selectedCombo?.durationText}</b>
+                        </span>
                       </div>
 
                       {/* Number of passengers */}
@@ -943,7 +963,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                      <div className="text-left space-y-1 max-w-sm">
                        <span className="text-xs text-amber-800 font-extrabold uppercase tracking-wider block">Tổng chi phí gói Combo:</span>
                        <span className="text-[11px] text-stone-500 block leading-tight font-sans">
-                         Gồm vé khứ hồi Limousine VIP cho {adults + children} người + {nights} đêm ở phòng {selectedAcc?.roomTypes[roomTypeIndex].name}.
+                         Gồm vé khứ hồi Limousine VIP cho {adults + children} người + {nights} đêm ở phòng {selectedAcc?.roomTypes?.[roomTypeIndex]?.name || "Luxury Deluxe"}.
                        </span>
                        
                        {appliedCoupon && (
