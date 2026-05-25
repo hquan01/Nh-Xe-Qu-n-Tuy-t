@@ -31,6 +31,27 @@ const DROPOFF_POINTS_MC = [
   "Cầu Kính Bạch Long (Mường Sang, có phụ phí)"
 ];
 
+const isHanoiRoute = (point: string) => {
+  if (!point) return true;
+  const p = point.trim().toLowerCase();
+  return (
+    p === "" ||
+    p.includes("hà nội") ||
+    p.includes("hanoi") ||
+    p.includes("ha noi") ||
+    p.includes("hn") ||
+    p.includes("nguyễn tuân") ||
+    p.includes("nguyen tuan") ||
+    p.includes("bigc") ||
+    p.includes("big c") ||
+    p.includes("hoàng gia") ||
+    p.includes("royal") ||
+    p.includes("thành phố") ||
+    p.includes("tận nơi") ||
+    p.includes("thăng long")
+  );
+};
+
 export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment, currentUser, bookings, onDeductPoints, combos, accommodations, locations, coupons = [] }: ComboBookingProps) {
   const [selectedCombo, setSelectedCombo] = useState<TourCombo | null>(null);
   const [selectedAcc, setSelectedAcc] = useState<Accommodation | null>(null);
@@ -430,7 +451,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                           </span>
                         </div>
                         <div className="mt-1">
-                          {pickupPoint.trim().toLowerCase() === "hà nội" ? (
+                          {isHanoiRoute(pickupPoint) ? (
                             <div className="flex flex-col">
                               {travelDate ? (
                                 <span className="text-xl font-extrabold text-amber-600 font-mono">
@@ -454,14 +475,14 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                               Liên hệ để được tư vấn
                             </span>
                           )}
-                          {pickupPoint.trim().toLowerCase() === "hà nội" && (
+                          {isHanoiRoute(pickupPoint) && (
                             <span className="text-[10px] text-stone-400 font-sans mt-0.5 block">/khách (Giá {travelDate ? "ngày bạn chọn" : "ngày thường"})</span>
                           )}
                         </div>
                         <span className="text-[9px] text-stone-400 block font-sans">*Áp dụng khi đặt từ 2 người lớn</span>
                       </div>
 
-                      {pickupPoint.trim().toLowerCase() === "hà nội" ? (
+                      {isHanoiRoute(pickupPoint) ? (
                         <div className="flex flex-col sm:flex-row gap-2">
                           <button
                             onClick={() => setDetailCombo(combo)}
@@ -955,7 +976,7 @@ export default function ComboBooking({ onAddBooking, searchParams, onOpenPayment
                       Chọn Combo Khác
                     </button>
                     
-                    {pickupPoint.trim().toLowerCase() === "hà nội" ? (
+                    {isHanoiRoute(pickupPoint) ? (
                       <button
                         type="submit"
                         id="submit_combo_booking_btn"
