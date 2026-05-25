@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { TourCombo, Accommodation } from "../../types";
-import { Plus, Edit2, Save, X, Image as ImageIcon, Building } from "lucide-react";
+import { Plus, Edit2, Save, X, Image as ImageIcon, Building, Trash2 } from "lucide-react";
 
 interface ComboManagementProps {
   combos: TourCombo[];
@@ -10,6 +10,13 @@ interface ComboManagementProps {
 
 export default function ComboManagement({ combos, onUpdateCombos, accommodations }: ComboManagementProps) {
   const [editingCombo, setEditingCombo] = useState<TourCombo | null>(null);
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa combo này?")) {
+      const nextCombos = combos.filter(c => c.id !== id);
+      onUpdateCombos(nextCombos);
+    }
+  };
 
   const handleSave = (updated: TourCombo) => {
     // Clean up empty lines from arrays
@@ -69,12 +76,22 @@ export default function ComboManagement({ combos, onUpdateCombos, accommodations
                   <p className="text-stone-500 text-xs">{combo.pricePerPerson.toLocaleString()} đ / người</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setEditingCombo(combo)}
-                className="p-2 text-stone-400 hover:text-emerald-600 cursor-pointer"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
+              <div className="flex gap-1">
+                <button 
+                  onClick={() => setEditingCombo(combo)}
+                  className="p-2 text-stone-400 hover:text-emerald-600 cursor-pointer"
+                  title="Chỉnh sửa"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => handleDelete(combo.id)}
+                  className="p-2 text-stone-400 hover:text-rose-600 cursor-pointer"
+                  title="Xóa"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         ))}

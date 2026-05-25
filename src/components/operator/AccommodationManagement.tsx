@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Accommodation } from "../../types";
-import { Plus, Edit2, Save, X, Building, Star, MapPin } from "lucide-react";
+import { Plus, Edit2, Save, X, Building, Star, MapPin, Trash2 } from "lucide-react";
 
 interface AccommodationManagementProps {
   accommodations: Accommodation[];
@@ -9,6 +9,13 @@ interface AccommodationManagementProps {
 
 export default function AccommodationManagement({ accommodations, onUpdateAccommodations }: AccommodationManagementProps) {
   const [editingAcc, setEditingAcc] = useState<Accommodation | null>(null);
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa khách sạn này?")) {
+      const nextAccs = accommodations.filter(a => a.id !== id);
+      onUpdateAccommodations(nextAccs);
+    }
+  };
 
   const handleSave = (updated: Accommodation) => {
     // Clean up empty lines from arrays
@@ -78,12 +85,22 @@ export default function AccommodationManagement({ accommodations, onUpdateAccomm
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setEditingAcc(acc)}
-                className="p-2 text-stone-400 hover:text-emerald-600 cursor-pointer"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
+              <div className="flex gap-1">
+                <button 
+                  onClick={() => setEditingAcc(acc)}
+                  className="p-2 text-stone-400 hover:text-emerald-600 cursor-pointer"
+                  title="Chỉnh sửa"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => handleDelete(acc.id)}
+                  className="p-2 text-stone-400 hover:text-rose-600 cursor-pointer"
+                  title="Xóa"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             
             <div className="flex flex-wrap gap-1.5">

@@ -39,6 +39,11 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
   };
 
   const startNew = () => {
+    // Generate starter stats for viral look
+    const starterViews = Math.floor(Math.random() * 500) + 800; // 800 - 1300 views
+    const starterLikes = Math.floor(starterViews * (0.15 + Math.random() * 0.1)); // 15-25% of views
+    const starterSaves = Math.floor(starterLikes * (0.3 + Math.random() * 0.2)); // 30-50% of likes
+
     const newArt: GuideArticle = {
       id: `article_${Date.now()}`,
       title: "",
@@ -49,9 +54,9 @@ export default function ArticleManagement({ articles, onUpdateArticles }: Articl
       categoryLabel: "Kinh nghiệm",
       readTime: "",
       date: new Date().toLocaleDateString('vi-VN'),
-      views: 0,
-      likes: 0,
-      saves: 0,
+      views: starterViews,
+      likes: starterLikes,
+      saves: starterSaves,
       isHot: false
     };
     setEditingArticle(newArt);
