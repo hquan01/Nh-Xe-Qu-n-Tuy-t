@@ -285,18 +285,7 @@ export default function OperatorPanel({
           notes: seatNotes,
         });
 
-        const getLocalList = <T,>(keyName: string, fallback: T[]): T[] => {
-          try {
-            const stored = localStorage.getItem(`xemc_list_${keyName}`);
-            return stored ? JSON.parse(stored) : fallback;
-          } catch {
-            return fallback;
-          }
-        };
-        const setLocalList = <T,>(keyName: string, list: T[]) => {
-          localStorage.setItem(`xemc_list_${keyName}`, JSON.stringify(list));
-          window.dispatchEvent(new Event("xedimocchau_db_update"));
-        };
+        const { getLocalList, setLocalList } = await import("../lib/firebaseUtils");
         const current = getLocalList<Booking>("bookings", []);
         const idx = current.findIndex(b => b.id === onlineBooking.id);
         if (idx > -1) {
@@ -314,7 +303,6 @@ export default function OperatorPanel({
         const pathTripId = lockService === "limousine" 
           ? `trip_custom_${lockTime.replace(":", "_")}` 
           : `shared_car_trip_custom_${lockTime.replace(":", "_")}`;
-        const key = seat.id + pathTripId + lockDate;
 
         const seatParams = {
           seatId: seat.id,
@@ -327,30 +315,8 @@ export default function OperatorPanel({
           note: seatNotes,
         };
 
-        const { db } = await import("../firebase");
-        const { doc, setDoc } = await import("firebase/firestore");
-        await setDoc(doc(db, "blocked_seats", key), seatParams);
-
-        const getLocalList = <T,>(keyName: string, fallback: T[]): T[] => {
-          try {
-            const stored = localStorage.getItem(`xemc_list_${keyName}`);
-            return stored ? JSON.parse(stored) : fallback;
-          } catch {
-            return fallback;
-          }
-        };
-        const setLocalList = <T,>(keyName: string, list: T[]) => {
-          localStorage.setItem(`xemc_list_${keyName}`, JSON.stringify(list));
-          window.dispatchEvent(new Event("xedimocchau_db_update"));
-        };
-        const current = getLocalList<BlockedSeat>("blocked_seats", []);
-        const idx = current.findIndex(s => s.seatId === seat.id && s.travelDate === lockDate && s.tripId === pathTripId);
-        if (idx > -1) {
-          current[idx] = seatParams;
-        } else {
-          current.push(seatParams);
-        }
-        setLocalList("blocked_seats", current);
+        const { saveBlockedSeatToFirebase } = await import("../lib/firebaseUtils");
+        await saveBlockedSeatToFirebase(seatParams);
       }
       setSelectedSeatForEdit(null);
     } catch (e) {
@@ -370,27 +336,13 @@ export default function OperatorPanel({
       const pathTripId = lockService === "limousine" 
         ? `trip_custom_${lockTime.replace(":", "_")}` 
         : `shared_car_trip_custom_${lockTime.replace(":", "_")}`;
-      const key = seat.id + pathTripId + lockDate;
 
-      const { db } = await import("../firebase");
-      const { doc, deleteDoc } = await import("firebase/firestore");
-      await deleteDoc(doc(db, "blocked_seats", key));
-
-      const getLocalList = <T,>(keyName: string, fallback: T[]): T[] => {
-        try {
-          const stored = localStorage.getItem(`xemc_list_${keyName}`);
-          return stored ? JSON.parse(stored) : fallback;
-        } catch {
-          return fallback;
-        }
-      };
-      const setLocalList = <T,>(keyName: string, list: T[]) => {
-        localStorage.setItem(`xemc_list_${keyName}`, JSON.stringify(list));
-        window.dispatchEvent(new Event("xedimocchau_db_update"));
-      };
-      const current = getLocalList<BlockedSeat>("blocked_seats", []);
-      const nextList = current.filter(s => !(s.seatId === seat.id && s.travelDate === lockDate && s.tripId === pathTripId));
-      setLocalList("blocked_seats", nextList);
+      const { deleteBlockedSeatFromFirebase } = await import("../lib/firebaseUtils");
+      await deleteBlockedSeatFromFirebase({
+        seatId: seat.id,
+        travelDate: lockDate,
+        tripId: pathTripId,
+      });
 
       setSelectedSeatForEdit(null);
     } catch (e) {

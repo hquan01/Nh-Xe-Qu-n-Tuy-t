@@ -121,8 +121,10 @@ export const updateBookingStatusInFirebase = async (bookingId: string, booking: 
 export const saveBlockedSeatToFirebase = async (seat: BlockedSeat) => {
   const key = seat.seatId + seat.tripId + seat.travelDate;
   const current = getLocalList<BlockedSeat>("blocked_seats", []);
-  const exists = current.some(s => s.tripId === seat.tripId && s.travelDate === seat.travelDate && s.seatId === seat.seatId);
-  if (!exists) {
+  const idx = current.findIndex(s => s.tripId === seat.tripId && s.travelDate === seat.travelDate && s.seatId === seat.seatId);
+  if (idx > -1) {
+    current[idx] = seat;
+  } else {
     current.push(seat);
   }
   setLocalList("blocked_seats", current);

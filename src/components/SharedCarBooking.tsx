@@ -398,8 +398,9 @@ export default function SharedCarBooking({
       return;
     }
 
-    const needsDetail = (pickupPoint.includes("tận nhà") || pickupPoint.includes("tận nơi")) || 
-                        (dropoffPoint.includes("tận nhà") || dropoffPoint.includes("tận nơi"));
+    const isPickupCustom = pickupPoint.toLowerCase().includes("tận nhà") || pickupPoint.toLowerCase().includes("tận nơi") || pickupPoint.toLowerCase().includes("tại nhà");
+    const isDropoffCustom = dropoffPoint.toLowerCase().includes("tận nhà") || dropoffPoint.toLowerCase().includes("tận nơi") || dropoffPoint.toLowerCase().includes("tại nhà");
+    const needsDetail = isPickupCustom || isDropoffCustom;
     
     if (needsDetail && !customDetailAddress.trim()) {
       setErrorMsg("Vui lòng nhập địa chỉ đón/trả chi tiết!");
@@ -445,8 +446,10 @@ export default function SharedCarBooking({
       onDeductPoints(pointsDeducted);
     }
 
-    const pickupDetail = (pickupPoint.includes("tận nhà") || pickupPoint.includes("tận nơi")) ? `${pickupPoint} (${customDetailAddress})` : pickupPoint;
-    const dropoffDetail = (dropoffPoint.includes("tận nhà") || dropoffPoint.includes("tận nơi")) ? `${dropoffPoint} (${customDetailAddress})` : dropoffPoint;
+    const isPickupCustomNow = pickupPoint.toLowerCase().includes("tận nhà") || pickupPoint.toLowerCase().includes("tận nơi") || pickupPoint.toLowerCase().includes("tại nhà");
+    const isDropoffCustomNow = dropoffPoint.toLowerCase().includes("tận nhà") || dropoffPoint.toLowerCase().includes("tận nơi") || dropoffPoint.toLowerCase().includes("tại nhà");
+    const pickupDetail = isPickupCustomNow ? `${pickupPoint} (${customDetailAddress})` : pickupPoint;
+    const dropoffDetail = isDropoffCustomNow ? `${dropoffPoint} (${customDetailAddress})` : dropoffPoint;
 
     const bookingData = {
       id: "sh_" + Math.random().toString(36).substr(2, 9),
@@ -949,7 +952,7 @@ export default function SharedCarBooking({
                       </select>
                     </div>
 
-                    {(pickupPoint.includes("tận nhà") || pickupPoint.includes("tận nơi") || dropoffPoint.includes("tận nhà") || dropoffPoint.includes("tận nơi")) && (
+                    {(pickupPoint.toLowerCase().includes("tận nhà") || pickupPoint.toLowerCase().includes("tận nơi") || pickupPoint.toLowerCase().includes("tại nhà") || dropoffPoint.toLowerCase().includes("tận nhà") || dropoffPoint.toLowerCase().includes("tận nơi") || dropoffPoint.toLowerCase().includes("tại nhà")) && (
                       <div className="space-y-1.5 p-3.5 bg-emerald-50/50 border border-emerald-200 rounded-xl">
                         <label className="text-xs text-[#1b4332] font-bold block">Địa chỉ chi tiết (Dành cho dịch vụ Đón/Trả tận nơi)</label>
                         <input
